@@ -1,193 +1,243 @@
-﻿import * as THREE from 'three';
 
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { LoopSubdivision } from 'three/addons/modifiers/LoopSubdivision.js';
-import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+var hierarchy = {};
+var classNodes = [];
 
+var ignoredClasses = [];
+var ignoredExports = [];
 
-
-// initialize the scene
+function processExport( data )
 {
-	var renderer = new THREE.WebGLRenderer( {antialias:true} );
-		document.body.appendChild( renderer.domElement );
-		document.body.style.margin = 0;
-		document.body.style.overflow = 'hidden';
+	var exp = data.shift( ),
+		word = exp.split(' ').filter(x=>x!=''),
+		words = word.length,
+		result = [];
 
-	var scene = new THREE.Scene();
-		scene.background = new THREE.Color( 'white' );
-
-	var camera = new THREE.PerspectiveCamera( 60, 1, 1, 200 );
-		camera.position.set( 30, 20, 10 );
-		camera.lookAt( scene.position );
-
-	var controls = new OrbitControls( camera, renderer.domElement );
-		controls.maxDistance = 20;
-		controls.minDistance = 2;
-		controls.enableDamping = true;
-		//controls.autoRotate = true;
-		controls.autoRotateSpeed = 5;
-
-	var light = new THREE.DirectionalLight( );
-		scene.add( light );
-}
-
-
-
-// process window resize events
-{
-	function onWindowResize( event )
+	// not: export
+	if( word[0]!='export' )
 	{
-		camera.aspect = window.innerWidth / window.innerHeight;
-		camera.updateProjectionMatrix();
-
-		renderer.setSize( window.innerWidth, window.innerHeight, true );
-	}			
-
-	window.addEventListener( 'resize', onWindowResize, false );
-
-	onWindowResize();
-}
-	
-	
-
-// create animation loop
-{
-	function animate( )
-	{
-		controls.update( );
-		light.position.copy( camera.position );
-
-		renderer.render( scene, camera );
+		//console.warn(exp)
 	}
-
-	renderer.setAnimationLoop( animate );
-}
-
-
-
-const params = {
-    split:          !true,       // optional, default: true
-    uvSmooth:       false,      // optional, default: false
-    preserveEdges:  false,      // optional, default: false
-    flatOnly:       false,      // optional, default: false
-    maxTriangles:   Infinity,   // optional, default: Infinity
-};
-
-
-// tree fork: https://en.wikipedia.org/wiki/Tree_fork
-
-
-/*
-         gap topRadius  vertices
-		  :   :         :
-1		  :   :			:
-     \   \ /   /		10,11,12,13, 14,15,16,17,
-2/3   \   V   /			8,9
-       \     /			4,5,6,7
-1/3     |   |
-        |   |			0,1,2,3
-0		  :
-		  :
-		bottomRadius
-		
-		
-      2            3
-     -,- ________ +,-
-        /       /                   c-b
-       /       /                    |/|
-      /_______/                     d-a
-   -,+        +,+
-    1          0
-			   
-*/
-
-
-class TreeForkGeometry extends THREE.BufferGeometry
-{
-	constructor( baseRadius=0.5, topRadius1=0.3, gap1=0.5 , topRadius2=0.3, gap2=0.5 )
+	// ignore: export *
+	//		   export const
+	//		   export function
+	//		   export default
+	else if( word[1]=='*' || word[1]=='const' || word[1]=='function' || word[1]=='default' )
 	{
-		super( );
-		
-		this.type = 'TreeForkGeometry';
-		
-		var indices = [],
-			vertices = [];
+		ignoredExports.push( exp );
+	}
+	else
+	// export class ‹classname› extends ‹parentclass› {
+	if( words>=6 && word[1]=='class' && word[3]=='extends' && word[5]=='{' )
+	{
+		result.push( word[2] );
+	}
+	else
+	// export class ‹classname› {
+	if( words>=4 && word[1]=='class' && word[3]=='{' )
+	{
+		result.push( word[2] );
+	}
+	else
+	// export { ‹classname› }
+	if( words==4 && word[1]=='{' && word[3]=='}' )
+	{
+		result.push( word[2] );
+	}
+	else
+	// export { default as ‹classname› }
+	if( words==6 && word[1]=='{' && word[2]=='default' && word[3]=='as' && word[5]=='}' )
+	{
+		result.push( word[4] );
+	}
+	else
+	// export { ‹classname›, ‹classname›, ... }
+	if( words>=4 && word[1]=='{' && word[words-1]=='}' )
+	{
+		for( var i=2; i<words-1; i++ )
+		{
+			var list = word[i].split('\t').join('');
+				list = list.split(',').filter(x=>x!='').map(x=>x.trim());
+				list = list.filter(x=>x!='default').filter(x=>x!='as');
 			
-		var r, x, y, g;
-		
-		// 0-3
-		r = baseRadius * Math.sqrt(2);
-		y = 0;
-		vertices.push( r,y,r, -r,y,r, -r,y,-r, r,y,-r );
-
-		// 4-7
-		y = 1/3;
-		vertices.push( r,y,r, -r,y,r, -r,y,-r, r,y,-r );
-
-		// 8-9
-		r = (baseRadius+topRadius1+topRadius2)/3 * Math.sqrt(2);
-		x = (gap2 - gap1)/2;
-		y = 2/3;
-		vertices.push( x,y,r, x,y,-r );
-		
-		// 10-13
-		r = topRadius1 * Math.sqrt(2);
-		g = r + gap1;
-		y = 1;
-		vertices.push( r-g,y,r, -r-g,y,r, -r-g,y,-r, r-g,y,-r );
-		
-		// 14-17
-		r = topRadius2 * Math.sqrt(2);
-		g = r + gap2;
-		vertices.push( r+g,y,r, -r+g,y,r, -r+g,y,-r, r+g,y,-r );
-
-		function trig(a,b,c)
-		{
-			indices.push(a,b,c);
+			result.push( ...list );
 		}
-		
-		function quad(a,b,c,d)
-		{
-			trig(a,b,d);
-			trig(b,c,d);
-		}
-		
-		function ring(a,b,c,d,A,B,C,D)
-		{
-			quad(a,A,B,b);
-			quad(b,B,C,c);
-			quad(c,C,D,d);
-			quad(d,D,A,a);
-		}
-		
-		ring(0,1,2,3,4,5,6,7);
-		ring(8,5,6,9,10,11,12,13);
-		ring(4,8,9,7,14,15,16,17);
-		trig(4,8,5);
-		trig(6,9,7);
-		
-		this.setIndex( indices );
-		this.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
 	}
-} // class TreeForkGeometry
+	else
+	{
+		//console.warn( exp );
+		ignoredExports.push( exp );
+	}
 
+	return result;
+}
 
-var mat = new THREE.MeshNormalMaterial( {wireframe: !true, flatShading: true, side: THREE.DoubleSide} );
-
-for( var i=0; i<3; i++ )
+function processClass( data )
 {
-	var tree = new THREE.Mesh(
-		LoopSubdivision.modify( new TreeForkGeometry( 1, 1, 1, 0.2, 2 ), i, params ),
-		mat
-	);
-	tree.position.x = (i-1)*7;
-	tree.scale.y = 5;
-	scene.add( tree );
+	var cls = data.shift( ),
+		word = cls.split(' ').filter(x=>x!=''),
+		words = word.length,
+		result = [];
+		
+//console.log( cls );
+
+	// not: class
+	if( word[0]!='class' )
+	{
+
+	}
+	// ignore: class *
+	else if( word[1]=='*' )
+	{
+		ignoredClasses.push( cls );
+	}
+	else
+	// class ‹classname› {
+	if( words==3 && word[2]=='{' )
+	{
+		result.push( [word[1]] );
+	}
+	else
+	// class ‹classname› extends ‹parentclass› {
+	if( words==5 && word[2]=='extends' && word[4]=='{' )
+	{
+		result.push( [word[1],word[3]] );
+	}
+	else
+	{
+		ignoredClasses.push( cls );
+	}
+	return result;
+}
+
+
+function createClassNode( name, hierarcyNode, path, file, parentName )
+{
+	var node = {};
+	node.name = name;
+	
+	if( hierarcyNode )
+		node.hierarcyNode = hierarcyNode;
+	
+	if( (path || file) && node.filename )
+		console.error( 'Node already exists', node );
+
+	if( path || file )
+		node.filename = path.join('/')+'/'+file;
+
+	if( parentName )
+	{
+		node.parentName = parentName;
+	}
+	
+	classNodes.push( node );
+	return node;
+}
+
+
+function processFileName( data )
+{
+	if( !data.length ) return;
+	
+	while( data[0]!='@FILENAME' )
+		if( data.length )
+			data.shift( );
+		else
+			return;
+	
+	data.shift( ); // remove @FILENAME
+
+	var path = data.shift( ).split( '|' ), // path without the filename
+		file = path.pop( );
+		
+	var node = hierarchy;
+	for( var folder of path )
+	{
+		if( node[folder] == undefined )
+			node[folder] = {};
+		node = node[folder];
+	}
+
+//	console.group( file );
+	var classes = [],
+		exports = [];
+		
+	while( data.length && data[0]!='@FILENAME' )
+	{
+		var cmd = data.shift( );
+		if( cmd == '@EXPORT' )
+			exports.push( ...processExport( data ) );
+		else if( cmd == '@CLASS' )
+			classes.push( ...processClass( data ) );
+		else if( cmd == '' )
+			{ } // ignore empty lines
+		else
+			console.error( 'Unknown @-command', '|'+cmd+'|' );
+	}
+	//console.log( classes );
+	//console.log( exports );
+	
+	for( var classGroup of classes )
+	{
+		var name = classGroup[0],
+			parentName = classGroup[1];
+
+		// because there is one parent name THREE.Object3D
+		if( parentName )
+			parentName = parentName.split('.').filter(x=>x!='THREE').join('.')
+			
+		// if( parentName )
+			// console.log( parentName,'->',name );
+		// else
+			// console.log( name );
+		if( exports.indexOf(name)>=0 )
+		{
+			createClassNode( name, node, path, file, parentName );
+		}
+		else
+			console.warn('Class that is not exported',name);
+	}
+	
+//	if( classes.length==0 && exports.length>0 )
+//		console.log( exports );
+//	console.groupEnd( );
+}
+
+function process( data )
+{
+	data = data.split( '\n' );
+	while( data.length )
+		processFileName( data ); 
+}
+
+
+process( DATA_SRC );
+process( DATA_ADDONS );
+
+// check whether parents are unique
+for( var node of classNodes ) if( node.parentName )
+{
+	if( classNodes.filter(n=>n.name==node.parentName).length>1 )
+		console.error( 'Parent names not unique',node.parentName );
+}
+
+// check whether parents are existing
+for( var node of classNodes ) if( node.parentName )
+{
+	if( !classNodes.find(n=>n.name==node.parentName) )
+		console.error( 'Parent is not existing, child',node );
 }
 
 
 
-scene.add( new THREE.AxesHelper( 10 ) );
 
 
-//export { MAX_LEVEL, updatePlatons, exportPlatonAsGLTF, exportPlatonAsJSON, exportPlatonAsImage, exportPlatonAsHTML, exportPlatonAsJS };
+console.groupCollapsed( `Ignored classes (${ignoredClasses.length})` );
+console.log( ignoredClasses.sort() );
+console.groupEnd( );
+
+console.groupCollapsed( `Ignored exports (${ignoredExports.length})` );
+console.log( ignoredExports.sort() );
+console.groupEnd( );
+
+console.log( hierarchy );
+console.log( classNodes );
