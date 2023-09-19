@@ -1,6 +1,16 @@
 
-var hierarchy = {};
+class HierarchyNode
+{
+}
+
+class ClassNode
+{
+}
+
+
+var hierarchy = new HierarchyNode( );
 var classNodes = [];
+var temporaryClassNodes = [];
 
 var ignoredClasses = [];
 var ignoredExports = [];
@@ -110,9 +120,9 @@ function processClass( data )
 }
 
 
-function createClassNode( name, hierarcyNode, path, file, parentName )
+function createClassNode( name, hierarcyNode, path, file, parentName, temporary )
 {
-	var node = {};
+	var node = new ClassNode( );
 	node.name = name;
 	
 	if( hierarcyNode )
@@ -128,8 +138,9 @@ function createClassNode( name, hierarcyNode, path, file, parentName )
 	{
 		node.parentName = parentName;
 	}
+
+	( temporary ? temporaryClassNodes : classNodes ).push( node );
 	
-	classNodes.push( node );
 	return node;
 }
 
@@ -150,14 +161,15 @@ function processFileName( data )
 		file = path.pop( );
 		
 	var node = hierarchy;
+var depth = 0;
 	for( var folder of path )
 	{
 		if( node[folder] == undefined )
-			node[folder] = {};
+			node[folder] = new HierarchyNode( );
 		node = node[folder];
+		depth++;
 	}
-
-//	console.group( file );
+	
 	var classes = [],
 		exports = [];
 		
@@ -190,11 +202,9 @@ function processFileName( data )
 		// else
 			// console.log( name );
 		if( exports.indexOf(name)>=0 )
-		{
-			createClassNode( name, node, path, file, parentName );
-		}
+			createClassNode( name, node, path, file, parentName, false );
 		else
-			console.warn('Class that is not exported',name);
+			createClassNode( name, node, path, file, parentName, true );
 	}
 	
 //	if( classes.length==0 && exports.length>0 )
@@ -224,9 +234,52 @@ for( var node of classNodes ) if( node.parentName )
 for( var node of classNodes ) if( node.parentName )
 {
 	if( !classNodes.find(n=>n.name==node.parentName) )
-		console.error( 'Parent is not existing, child',node );
+	{
+		var parent = temporaryClassNodes.find( n => n.name==node.parentName );
+		
+		if( parent ) classNodes.push( parent );
+	}
 }
 
+for( var node of classNodes ) if( node.parentName )
+{
+	if( !classNodes.find(n=>n.name==node.parentName) )
+	{
+		console.error( 'Parent is not existing, child',node );
+	}
+}
+
+// convert flat array to tree array
+for( var node of classNodes ) if( node.parentName )
+{
+	var parentNode = classNodes.find( n => n.name==node.parentName );
+	if( !parentNode ) continue;
+
+	// child -> parent
+	node.parent = parentNode;
+	
+	// parent -> children
+	if( !parentNode.children ) parentNode.children = [];
+	parentNode.children.push( node );
+}
+
+// remove non-root elements
+classNodes = classNodes.filter( node => node.parent==undefined ).sort( (a,b) => a.name>b.name?1:-1 );
+
+// add root class nodes to the hierarchy
+for( var node of classNodes )
+{
+	var h = node.hierarcyNode;
+	
+	if( h == undefined )
+	{
+		console.error( 'Error node without hierarchy', node );
+		h = hierarchy;
+	}
+	
+	if( !h.roots ) h.roots = [];
+	h.roots.push( node );
+}
 
 
 
@@ -241,3 +294,4 @@ console.groupEnd( );
 
 console.log( hierarchy );
 console.log( classNodes );
+//console.log( temporaryClassNodes );
