@@ -249,6 +249,16 @@ for( var node of classNodes ) if( node.parentName )
 	}
 }
 
+// set classes of hierarchy nodes
+for( var node of classNodes )
+{
+	var h = node.hierarcyNode || hierarcy;
+	if( h._classes == undefined )
+		 h._classes = [];
+	  
+	h._classes.push( node )
+}
+
 // convert flat array to tree array
 for( var node of classNodes ) if( node.parentName )
 {
@@ -277,8 +287,8 @@ for( var node of classNodes )
 		h = hierarchy;
 	}
 	
-	if( !h.roots ) h.roots = [];
-	h.roots.push( node );
+	if( !h._roots ) h._roots = [];
+	h._roots.push( node );
 }
 
 
