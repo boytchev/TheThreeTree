@@ -1,14 +1,24 @@
 
 class HierarchyNode
 {
+	constructor( name, level )
+	{
+		this.level = level;
+		this.name = name;
+	}
 }
 
 class ClassNode
 {
+	constructor( name )
+	{
+		this.level = undefined;
+		this.name = name;
+	}
 }
 
 
-var hierarchy = new HierarchyNode( );
+var hierarchy = new HierarchyNode( 'threejs', 0 );
 var classNodes = [];
 var temporaryClassNodes = [];
 
@@ -120,13 +130,13 @@ function processClass( data )
 }
 
 
-function createClassNode( name, hierarcyNode, path, file, parentName, temporary )
+function createClassNode( name, hierarchyNode, path, file, parentName, temporary )
 {
 	var node = new ClassNode( );
 	node.name = name;
 	
-	if( hierarcyNode )
-		node.hierarcyNode = hierarcyNode;
+	if( hierarchyNode )
+		node.hierarchyNode = hierarchyNode;
 	
 	if( (path || file) && node.filename )
 		console.error( 'Node already exists', node );
@@ -161,13 +171,12 @@ function processFileName( data )
 		file = path.pop( );
 		
 	var node = hierarchy;
-var depth = 0;
+
 	for( var folder of path )
 	{
 		if( node[folder] == undefined )
-			node[folder] = new HierarchyNode( );
+			node[folder] = new HierarchyNode( folder, node.level+1 );
 		node = node[folder];
-		depth++;
 	}
 	
 	var classes = [],
@@ -252,7 +261,7 @@ for( var node of classNodes ) if( node.parentName )
 // set classes of hierarchy nodes
 for( var node of classNodes )
 {
-	var h = node.hierarcyNode || hierarcy;
+	var h = node.hierarchyNode || hierarchy;
 	if( h._classes == undefined )
 		 h._classes = [];
 	  
@@ -279,7 +288,7 @@ classNodes = classNodes.filter( node => node.parent==undefined ).sort( (a,b) => 
 // add root class nodes to the hierarchy
 for( var node of classNodes )
 {
-	var h = node.hierarcyNode;
+	var h = node.hierarchyNode;
 	
 	if( h == undefined )
 	{
@@ -292,16 +301,42 @@ for( var node of classNodes )
 }
 
 
+// dump hierarchy
+function dumpHierarchy( )
+{
+	function dumpNode( node )
+	{
+//console.group( 'dump1', node.name );
+		var str = '';
+		for( var i=0; i<node.level; i++ )
+			str += "|---";
+		str += '|--> '+node.name+(node._roots?' ('+node._roots.length+')':'');
+		console.log( str );
+		
+		for( var prop in node )
+		{
+			if( node[prop] instanceof HierarchyNode )
+				dumpNode( node[prop] );
+//				console.log( prop );
+		}
+//console.groupEnd();
+	}
+
+	dumpNode( hierarchy );
+}
 
 
-console.groupCollapsed( `Ignored classes (${ignoredClasses.length})` );
-console.log( ignoredClasses.sort() );
-console.groupEnd( );
 
-console.groupCollapsed( `Ignored exports (${ignoredExports.length})` );
-console.log( ignoredExports.sort() );
-console.groupEnd( );
+// console.groupCollapsed( `Ignored classes (${ignoredClasses.length})` );
+// console.log( ignoredClasses.sort() );
+// console.groupEnd( );
+
+// console.groupCollapsed( `Ignored exports (${ignoredExports.length})` );
+// console.log( ignoredExports.sort() );
+// console.groupEnd( );
 
 console.log( hierarchy );
-console.log( classNodes );
+//console.log( classNodes );
 //console.log( temporaryClassNodes );
+
+dumpHierarchy();
