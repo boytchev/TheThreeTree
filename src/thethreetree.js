@@ -301,6 +301,25 @@ for( var node of classNodes )
 }
 
 
+// calculate size of hierarchy nodes
+function calcSize( node )
+{
+	var size = 1 + (node._roots?node._roots.length:0);
+	
+	for( var prop in node )
+	{
+		if( node[prop] instanceof HierarchyNode )
+			size += calcSize( node[prop] )+1;
+	}
+	
+	node.size = size;
+	return size;
+}
+
+calcSize( hierarchy );
+
+
+
 // dump hierarchy
 function dumpHierarchy( )
 {
@@ -310,7 +329,7 @@ function dumpHierarchy( )
 		var str = '';
 		for( var i=0; i<node.level; i++ )
 			str += "|---";
-		str += '|--> '+node.name+(node._roots?' ('+node._roots.length+')':'');
+		str += '|--> '+node.name+' ('+node.size+')';
 		console.log( str );
 		
 		for( var prop in node )
