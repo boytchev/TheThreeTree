@@ -94,20 +94,42 @@ function addCircle( r )
 	
 }
 
+var rs = [9,3,2,10,10,1,1,2,4,1,23,2,15,3,2].sort();
+var rs = [5,1,1,2,3,2,7,1,10,2,1,3,15,3,1,6,1,14,8,5,42,2,1,1,4,31,1,2,5,8].sort();
+
+frameCircle( 0, 0, 200 );
+
+var sum = 0;
+for( var rad of rs ) sum += 10+rad;
+
+for( var rad of rs )
+{	
+	rad = 2*200*((10+rad)/sum);
+	var r = (200-rad) * Math.sqrt( Math.random() ) / 2,
+		a = 2*Math.PI*Math.random(),
+		x = r * Math.cos(a),
+		y = r * Math.sin(a);
+		
+	frameCircle( x, y, rad );
+}
 
 
-addCircle( 100 );
-addCircle( 80 );
-addCircle( 70 );
-addCircle( 60 );
-addCircle( 55 );
-addCircle( 55 );
-addCircle( 50 );
-addCircle( 25 );
-addCircle( 20 );
-addCircle( 20 );
-addCircle( 20 );
-addCircle( 20 );
+		
+//for( var i=rs.length-1; i>=0; i-- )
+//addCircle( 10+3*rs[i] );
+
+// addCircle( 100 );
+// addCircle( 80 );
+// addCircle( 70 );
+// addCircle( 60 );
+// addCircle( 55 );
+// addCircle( 55 );
+// addCircle( 50 );
+// addCircle( 25 );
+// addCircle( 20 );
+// addCircle( 20 );
+// addCircle( 20 );
+// addCircle( 20 );
 
 // try to calculate minimal enclosing circle
 
@@ -128,4 +150,11 @@ frameCircle( minX, minY, 5 );
 frameCircle( minX, maxY, 5 );
 frameCircle( maxX, maxY, 5 );
 frameCircle( maxX, minY, 5 );
-frameCircle( (minX+maxX)/2, (minY+maxY)/2, Math.max((maxX-minX)**2,(maxY-minY)**2)**0.5/2 );
+var x = (minX+maxX)/2,
+	y = (minY+maxY)/2,
+	r = 0;
+	
+for( var c of circles )
+	r = Math.max( r, c.r + Math.sqrt( (c.x-x)**2 + (c.y-y)**2 ) );
+
+frameCircle( x, y, r );
