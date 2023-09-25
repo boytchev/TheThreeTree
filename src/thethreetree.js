@@ -1,9 +1,11 @@
 
+
+
 class HierarchyNode
 {
-	constructor( name, level )
+	constructor( name/*, level*/ )
 	{
-		this.level = level;
+		/*this.level = level;*/
 		this.name = name;
 	}
 }
@@ -12,7 +14,7 @@ class ClassNode
 {
 	constructor( name )
 	{
-		this.level = undefined;
+		/*this.level = undefined;*/
 		this.name = name;
 	}
 }
@@ -175,7 +177,7 @@ function processFileName( data )
 	for( var folder of path )
 	{
 		if( node[folder] == undefined )
-			node[folder] = new HierarchyNode( folder, node.level+1 );
+			node[folder] = new HierarchyNode( folder/*, node.level+1*/ );
 		node = node[folder];
 	}
 	
@@ -304,7 +306,7 @@ for( var node of classNodes )
 // calculate size of hierarchy nodes
 function calcSize( node )
 {
-	var size = 1 + (node._roots?node._roots.length:0);
+	var size = (node._roots?node._roots.length:0);
 	
 	for( var prop in node )
 	{
@@ -323,27 +325,45 @@ calcSize( hierarchy );
 // dump hierarchy
 function dumpHierarchy( )
 {
-	function dumpNode( node )
+	function dumpClass( node, level=1 )
 	{
-//console.group( 'dump1', node.name );
 		var str = '';
-		for( var i=0; i<node.level; i++ )
+		for( var i=0; i<level; i++ )
 			str += "|---";
+		var rstr = str+'|---';
+		str += '|--> '+node.name//+' (?'+node.size+')';
+		console.log( str );
+		
+		for( var i in node.children )
+		{
+			dumpClass( node.children[i], level+1 );
+		}
+	}
+
+	function dumpNode( node, level=1 )
+	{
+		var str = '';
+		for( var i=0; i<level; i++ )
+			str += "|---";
+		var rstr = str+'|---';
 		str += '|--> '+node.name+' ('+node.size+')';
 		console.log( str );
+		
+		if( node._roots )
+		for( var i in node._roots )
+		{
+			dumpClass( node._roots[i], level+1 );
+		}
 		
 		for( var prop in node )
 		{
 			if( node[prop] instanceof HierarchyNode )
-				dumpNode( node[prop] );
-//				console.log( prop );
+				dumpNode( node[prop], level+1 );
 		}
-//console.groupEnd();
 	}
 
 	dumpNode( hierarchy );
 }
-
 
 
 // console.groupCollapsed( `Ignored classes (${ignoredClasses.length})` );
@@ -354,8 +374,8 @@ function dumpHierarchy( )
 // console.log( ignoredExports.sort() );
 // console.groupEnd( );
 
-console.log( hierarchy );
-//console.log( classNodes );
+//console.log( hierarchy );
+console.log( classNodes );
 //console.log( temporaryClassNodes );
 
-dumpHierarchy();
+//dumpHierarchy();
