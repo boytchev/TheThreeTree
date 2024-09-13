@@ -30,7 +30,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // manage window resize events
 {
-	function onWindowResize( event )
+	function onWindowResize( /*event*/ )
 	{
 		camera.aspect = window.innerWidth / window.innerHeight;
 		camera.updateProjectionMatrix();
@@ -70,10 +70,10 @@ class Circle extends THREE.Mesh
 		var total = this.r ** K,
 			sum = 0;
 			
-		for( var r of radii )
+		for( let r of radii )
 				sum += (N+r) ** K;
 
-		for( var r of radii )
+		for( let r of radii )
 		{	
 			r = (N+r)**K / sum * total;
 			var d = (this.r-r)*Math.random(),
@@ -137,45 +137,19 @@ class Circle extends THREE.Mesh
 var mainCircle = new Circle( 0, 0, 104 );
 	scene.add( mainCircle );
 	
-	mainCircle.addCircles( [9,3,2,10,10,1,1,2,4,1,23,2,15,3,2] );
+	mainCircle.addCircles( [9,3,2,10,10,1,1,2,4,1,23,2,15,3,2, 1, 1, 1, 1, 1] );
 	mainCircle.children[0].addCircles( [1,   1,1,1,1,1,1,1,1] );
+	mainCircle.children[3].addCircles( [1] );
 	mainCircle.children[4].addCircles( [3,1,   1,1,1,1,1,1] );
 	mainCircle.children[10].addCircles( [1,    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] );
 	mainCircle.children[12].addCircles( [2,3,5, 1,1,1,1,1] );
 	mainCircle.children[12].children[0].addCircles( [1,1,    1,1,1] );
 	
-/*
-thethreetree.js:336 |---|---|--> animation (9)		//
-thethreetree.js:336 |---|---|---|--> tracks (1)
-thethreetree.js:336 |---|---|--> audio (3)			//
-thethreetree.js:336 |---|---|--> cameras (2)		//
-thethreetree.js:336 |---|---|--> core (10)			//
-thethreetree.js:336 |---|---|--> extras (10)		//
-thethreetree.js:336 |---|---|---|--> core (3)
-thethreetree.js:336 |---|---|---|--> curves (1)
-thethreetree.js:336 |---|---|--> geometries (1)		//
-thethreetree.js:336 |---|---|--> helpers (1)		//
-thethreetree.js:336 |---|---|--> lights (2)			//
-thethreetree.js:336 |---|---|--> loaders (4)		//
-thethreetree.js:336 |---|---|--> materials (1)		//
-thethreetree.js:336 |---|---|--> math (23)			//
-thethreetree.js:336 |---|---|---|--> interpolants (1)
-thethreetree.js:336 |---|---|--> objects (2)		//
-thethreetree.js:336 |---|---|--> renderers (15)		//
-thethreetree.js:336 |---|---|---|--> shaders (5)
-thethreetree.js:336 |---|---|---|---|--> ShaderChunk (1)
-thethreetree.js:336 |---|---|---|---|--> ShaderLib (1)
-thethreetree.js:336 |---|---|---|--> webgl (3)
-thethreetree.js:336 |---|---|---|--> webxr (2)
-thethreetree.js:336 |---|---|--> scenes (3)			//
-thethreetree.js:336 |---|---|--> textures (2)		//
-*/
-
+	for( var i=0; i<1250; i++ ) mainCircle.adjust( 0.5 );
 
 // animation loop
 function animate( )
 {
-	mainCircle.adjust( 0.5 );
 //		controls.update( );
 	renderer.render( scene, camera );
 }

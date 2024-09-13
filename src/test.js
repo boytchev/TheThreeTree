@@ -2,7 +2,6 @@
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { LoopSubdivision } from 'three/addons/modifiers/LoopSubdivision.js';
-import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 
 
@@ -35,7 +34,7 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // process window resize events
 {
-	function onWindowResize( event )
+	function onWindowResize( /*event*/ )
 	{
 		camera.aspect = window.innerWidth / window.innerHeight;
 		camera.updateProjectionMatrix();

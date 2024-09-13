@@ -1,2 +1,4 @@
 
 *.bak
+misc
+node_modules

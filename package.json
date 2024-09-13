@@ -1,0 +1,32 @@
+{
+  "name": "thethreetree",
+  "version": "0.0.2",
+  "description": "The Tree of Three.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "plugins": [
+    "html"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boytchev/TheThreeTree.git"
+  },
+  "keywords": [
+    "tree",
+    "three.js"
+  ],
+  "author": "Pavel Boytchev",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/boytchev/TheThreeTree/issues"
+  },
+  "homepage": "https://github.com/boytchev/TheThreeTree#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "eslint": "^9.10.0",
+    "eslint-plugin-html": "^8.1.1",
+    "globals": "^15.9.0"
+  }
+}
