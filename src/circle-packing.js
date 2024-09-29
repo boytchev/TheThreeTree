@@ -65,10 +65,10 @@ class Circle extends THREE.Mesh
 
 	addCircles( radii )
 	{
-		const K = 1.1, N = 5;
+		const K = 1.1, N = 1;
 		
 		var total = this.r ** K,
-			sum = 0;
+			sum = 3;
 			
 		for( let r of radii )
 				sum += (N+r) ** K;
@@ -139,17 +139,24 @@ var mainCircle = new Circle( 0, 0, 104 );
 	
 	mainCircle.addCircles( [9,3,2,10,10,1,1,2,4,1,23,2,15,3,2, 1, 1, 1, 1, 1] );
 	mainCircle.children[0].addCircles( [1,   1,1,1,1,1,1,1,1] );
-	mainCircle.children[3].addCircles( [1] );
+	mainCircle.children[3].addCircles( [1,2,4] );
 	mainCircle.children[4].addCircles( [3,1,   1,1,1,1,1,1] );
 	mainCircle.children[10].addCircles( [1,    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] );
 	mainCircle.children[12].addCircles( [2,3,5, 1,1,1,1,1] );
 	mainCircle.children[12].children[0].addCircles( [1,1,    1,1,1] );
 	
-	for( var i=0; i<1250; i++ ) mainCircle.adjust( 0.5 );
+	for( var i=0; i<200; i++ ) mainCircle.adjust( 0.5 );
+
+var packs = 0;
 
 // animation loop
 function animate( )
 {
+	if( packs<2000 )
+	{
+		packs++;
+		mainCircle.adjust( 0.5 );
+	}
 //		controls.update( );
 	renderer.render( scene, camera );
 }

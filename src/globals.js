@@ -53,6 +53,7 @@ class Class {
 		this.children = children;
 		this.isRoot = false;
 		this.isZone = false;
+		this.isZoneJS = false;
 	}
 	
 	get info()
@@ -66,6 +67,25 @@ class Class {
 	{
 		parent.children.push( this );
 		this.parent = parent;
+	}
+	
+	dump( collapsed = true )
+	{	
+		var str = `${this.info}`;
+		
+		if( this.children.length>0 )
+			str += ` (${this.children.length})`;
+		
+		if( this.children.length>0 )
+			(collapsed?console.groupCollapsed:console.group)( str );
+		else
+			console.log( str );
+
+		for( var i=0; i<this.children.length; i++ )
+			this.children[i].dump( );
+		
+		if( this.children.length>0 )
+			console.groupEnd( str );
 	}
 
 }
