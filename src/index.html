@@ -11,8 +11,8 @@
 	<script type="importmap">
 	  {
 		"imports": {
-			"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
-			"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+			"three": "https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js",
+			"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.171.0/examples/jsm/"
 		}
 	  }
 	</script>
@@ -44,7 +44,41 @@
 			font-weight: normal;
 		}
 
-		
+		.labelCore {
+			text-align: center;
+			font-family: sans-serif;
+
+			width: 6em;
+			height: 6em;
+			background: white;
+			border-radius: 6em;
+			
+			display: grid;
+			align-items: center;
+		}
+
+		.labelAddon {
+			text-align: center;
+			color: steelblue;
+			font-family: sans-serif;
+
+			width: 6em;
+			height: 6em;
+			background: white;
+			border-radius: 6em;
+			
+			display: grid;
+			align-items: center;
+		}
+
+		.zone {
+			text-align: center;
+			#color: dimgray;
+			font-family: sans-serif;
+			#background: lightgray;
+			#border-radius: 4em;
+			#padding: 0.5em 0.5em;
+		}
 	</style>
 	<script src="thethreetree.js" type="module"></script>
 </head>

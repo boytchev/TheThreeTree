@@ -18,7 +18,7 @@ var classes = [ new RootClass() ];
 
 
 
-function processClasses( data, fileName )
+function processClasses( data, fileName, isCore )
 {
 	fileName = fileName.replaceAll('\n','');
 	data = data.replaceAll('\n',' ').split(' ').filter( e=>e );
@@ -29,14 +29,14 @@ function processClasses( data, fileName )
 		//class <name> extends <parent> {...
 		if( isClassName( data[i+1] ) && data[i+2]=='extends' && isClassName( data[i+3] ) && data[i+4][0]=='{' )
 		{
-			classes.push( new Class( data[i+1], fileName, data[i+3]) );
+			classes.push( new Class( data[i+1], fileName, data[i+3], [], isCore) );
 		}
 		else
 		//[i]   [i+1]  [i+2]
 		//class <name> {...
 		if( isClassName( data[i+1] ) && data[i+2][0]=='{' )
 		{
-			classes.push( new Class( data[i+1], fileName, null) );
+			classes.push( new Class( data[i+1], fileName, null, [], isCore) );
 		}
 		else
 		{
@@ -47,31 +47,31 @@ function processClasses( data, fileName )
 
 
 
-function processFile( data )
+function processFile( data, isCore )
 {
 	data = data.split( '^..^ CONTENTS ^..^' );
 	if( data.length == 2 )
 	{
-		processClasses( data[1], data[0] );
+		processClasses( data[1], data[0], isCore );
 	}
 }
 
 
 
-function processFolder( data )
+function processFolder( data, isCore )
 {
 	data = data.split( '^..^ FILENAME ^..^' );
 	for( var i=0; i<data.length; i++ )
 	{
-		processFile(data[i]);
+		processFile(data[i],isCore);
 	}
 }
 
 
 
 console.groupCollapsed( 'Classes warnings' );
-processFolder( DATA_SRC );
-processFolder( DATA_ADDONS );
+processFolder( DATA_SRC, true );
+processFolder( DATA_ADDONS, false );
 classes.sort( sorter );
 
 

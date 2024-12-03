@@ -14,7 +14,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 		document.body.style.overflow = 'hidden';
 
 	var scene = new THREE.Scene();
-		scene.background = new THREE.Color( 'lightgray' );
+		scene.background = new THREE.Color( 'ghostwhite' );
 
 	var camera = new THREE.PerspectiveCamera( 60, 1, 1, 500 );
 		camera.position.set( 0, 0, 300 );
@@ -55,7 +55,7 @@ class Circle extends THREE.Mesh
 	{
 		var width = THREE.MathUtils.clamp( 0.1*r, 0.5, 5 );
 		var geometry = new THREE.RingGeometry( r-width, r, Math.round(r+10) ),
-			material = new THREE.MeshBasicMaterial( {color: 'royalblue', side: THREE.DoubleSide} );
+			material = new THREE.MeshBasicMaterial( {color: 'black', side: THREE.DoubleSide} );
 			
 		super( geometry, material );
 		
@@ -65,7 +65,7 @@ class Circle extends THREE.Mesh
 
 	addCircles( radii )
 	{
-		const K = 1.1, N = 1;
+		const K = 1.1-0.05, N = 1;
 		
 		var total = this.r ** K,
 			sum = 3;
@@ -134,18 +134,41 @@ class Circle extends THREE.Mesh
 
 
 
-var mainCircle = new Circle( 0, 0, 104 );
+var mainCircle = new Circle( 0, 0, 160 );
 	scene.add( mainCircle );
+
+function lorem( circle, level )
+{
+	if( level<1 ) return;
 	
+	var n = 2+Math.round(10*(level**2)*Math.random());
+	var s = [];
+	for( let i=0; i<n; i++ )
+		s.push( Math.round(1+6*Math.random()**2) );
+	
+	circle.addCircles( s );
+	for( let i=0; i<n; i++ )
+		if( Math.random()<0.6 )
+			lorem( circle.children[i], level-1 );
+	
+}
+
+	lorem( mainCircle, 2 );
+	/*	
 	mainCircle.addCircles( [9,3,2,10,10,1,1,2,4,1,23,2,15,3,2, 1, 1, 1, 1, 1] );
 	mainCircle.children[0].addCircles( [1,   1,1,1,1,1,1,1,1] );
-	mainCircle.children[3].addCircles( [1,2,4] );
+	mainCircle.children[3].addCircles( [1] );
+	mainCircle.children[3].children[0].addCircles( [1] );
+	mainCircle.children[3].children[0].children[0].addCircles( [1] );
 	mainCircle.children[4].addCircles( [3,1,   1,1,1,1,1,1] );
 	mainCircle.children[10].addCircles( [1,    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] );
 	mainCircle.children[12].addCircles( [2,3,5, 1,1,1,1,1] );
 	mainCircle.children[12].children[0].addCircles( [1,1,    1,1,1] );
+	*/
 	
-	for( var i=0; i<200; i++ ) mainCircle.adjust( 0.5 );
+	
+	
+	for( var i=0; i<50; i++ ) mainCircle.adjust( 0.15 );
 
 var packs = 0;
 

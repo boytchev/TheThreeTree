@@ -8,6 +8,8 @@
 import {sorter,ZoneClass} from "./globals.js";
 import classes from "./classes.js";
 
+var nodes = [];
+
 
 var rootClass = classes.filter( e=>e.isRoot )[0],
 	originalClassesCount = classes.length;
@@ -97,15 +99,16 @@ function addZones( node )
 
 				zone = new ZoneClass( zoneName );
 				zone.setParent( node );
-				zone.isZoneJS = zoneName.split('.js').length>1; // it was JS file, not folder
+				//zone.isZoneJS = zoneName.split('.js').length>1; // it was JS file, not folder
+				//zone.isZone = !zone.isZoneJS;
 			} // if-else
 			node.children[i].setParent( zone );
 		} // if !node.children[i].isZone
 	} // for
 
-	// remove zones with single child
+	// remove zones with single child, if the name matches (e.g.   file Abc.js defines class Abc)
 	node.children.forEach( e => {
-		if(e.isZoneJS && e.children.length==1)
+		if(e.isZone/*JS*/ && e.children.length==1 && e.name==e.children[0].name+'.js')
 		{
 			e.children[0].parent = node;
 			e.children = [];
@@ -124,6 +127,8 @@ function addZones( node )
 
 
 
+
+
 // check whether the number of classes is the same
 function calculateCount( node )
 {
@@ -138,12 +143,84 @@ function calculateCount( node )
 
 addZones( rootClass );
 
+
+
+
+
+
+
 if( originalClassesCount != calculateCount(rootClass) )
 {
 	console.error(`The number of classes has changed. The original count before hierarcy building was ${originalClassesCount}, while after building it is ${calculateCount(rootClass)}`);
 }
 
 
+rootClass.sort();
+
+
+// add fake zones to node with too many children
+
+function addFakeZones( node )
+{
+	var k=0; // keep the first k and the last k on the same level
+	
+	if( node.children.length>9 ) k = 3;
+	else
+	if( node.children.length>5 ) k = 2;
+		
+	if( k > 0 )
+	{		
+		var	zone = new ZoneClass( '' );
+		zone.parent = node;
+		
+		for( var i=k; i<node.children.length-k; i++ )
+		{
+			node.children[i].setParent( zone );
+		} // for
+		
+		// remove all ex-children that have moved to a new parent
+		//node.children = node.children.filter( e => e.parent==node );
+		// remove all ex-children that have moved to a new parent
+		node.children = node.children.filter( e => e.parent==node );
+		node.children.splice( k, 0, zone );
+		
+//		node.children.sort( sorter );
+	}
+	
+	// recursively process children
+	node.children.forEach( e => addFakeZones(e) );
+}
+
+addFakeZones( rootClass );
+
+
+
+// complete isCore -- because there are some classes with unset isCore
+function completeIsCore( node )
+{
+	for( var i=0; i<node.children.length; i++ )
+	{
+		if( node.children[i].isCore == null )
+			node.children[i].isCore = node.isCore;
+		
+		completeIsCore(node.children[i] );
+	}
+}
+
+completeIsCore( rootClass );
+
+
+// collect all nodes
+function collectNodes( node )
+{
+	nodes.push( node );
+		
+	for( var i=0; i<node.children.length; i++ )
+		collectNodes(node.children[i] );
+}
+
+collectNodes( rootClass );
+
 //console.table( classes )
 
-export {classes, rootClass} ;
+export {classes, rootClass, nodes};

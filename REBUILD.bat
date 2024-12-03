@@ -1,6 +1,8 @@
 @echo off
 
-@set srcdir=D:\Install\Three.js\three.js-master-r169\three.js-master
+@set threejs=171
+
+@set srcdir=D:\Install\Three.js\three.js-master-r%threejs%\three.js-master
 @set curdir=%cd%
 @set dstdir=%cd%\src\data
 

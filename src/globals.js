@@ -43,7 +43,7 @@ class Class {
 	
 	static ROOT_NAME = '%Three.js%';
 	
-	constructor ( name, fileName, parentName='', children=[] )
+	constructor ( name, fileName, parentName='', children=[], isCore=null )
 	{
 		this.name = name;
 		this.fileName = fileName;
@@ -52,8 +52,10 @@ class Class {
 		this.parent = null;
 		this.children = children;
 		this.isRoot = false;
-		this.isZone = false;
-		this.isZoneJS = false;
+		this.isZone = false;		// a folder containing files with classes
+		//this.isZoneJS = false;		// a js file containing classes
+		//this.isZoneFake = false;	// a fake zone to make subtrees thinner and taller
+		this.isCore = isCore;
 	}
 	
 	get info()
@@ -68,6 +70,86 @@ class Class {
 		parent.children.push( this );
 		this.parent = parent;
 	}
+	
+	get wrappedName()
+	{
+		function lower(x) { return ('a'<=x && x<='z')}
+		function upper(x) { return !lower(x) }
+		function split(name, limit) {
+			var cutPos = 0;
+			var cutScore = 0;
+			if( name.length > limit )
+			{
+				for( var i=0; i<name.length-1; i++ )
+					if( upper(name[i]) && lower(name[i+1]) )
+					{
+						var score = i/(name.length-1);
+						if( score>0.5 ) score = 1-score;
+						if( score>cutScore )
+						{
+							cutScore = score;
+							cutPos = i;
+						}
+					}
+				if( cutPos>1 && cutPos<name.length-2 )
+					name = split(name.slice(0,cutPos),limit)+'<br>'+split(name.slice(cutPos),limit);
+			}
+
+			return name;
+		}
+		
+		return split( this.name, 10 );
+	}
+	
+	get weight()
+	{
+		var result = 1;
+
+		for( var i=0; i<this.children.length; i++ )
+			result += this.children[i].weight;
+		
+		return result;
+	}
+	
+	// get isCore()
+	// {
+		// if( this.name == 'addons' ) return false;
+		// if( !this.parent ) return true;
+		// return this.parent.isCore;
+	// }
+	
+	
+	sort( )
+	{
+		// sort
+		this.children.sort( (a,b)=>{
+			if( a.isCore && !b.isCore ) return 1;
+			if( !a.isCore && b.isCore ) return -1;
+			return a.weight-b.weight;
+		} );
+		
+		// reorder
+		var before = this.children.length;		
+		var reorderedChildren = [];
+		
+		for( var i=0; i<this.children.length; i+=2 )
+			reorderedChildren.push( this.children[i] );
+		i--;
+		for( ; i>0; i-=2 ) if( i<this.children.length )
+			reorderedChildren.push( this.children[i] );
+
+		this.children = reorderedChildren;
+		
+		var after = this.children.length;
+
+		if( before != after ) console.error('Reordering children failed');
+		
+		
+		// recurse
+		for( i=0; i<this.children.length; i++ )
+			this.children[i].sort( );
+	}
+	
 	
 	dump( collapsed = true )
 	{	
@@ -99,6 +181,7 @@ class RootClass extends Class {
 	{
 		super( Class.ROOT_NAME );
 		this.isRoot = true;
+		this.isCore = true;
 	}
 	
 	get info()
@@ -115,6 +198,8 @@ class ZoneClass extends Class {
 	{
 		super( name );
 		this.isZone = true;
+		if( name=='src') this.isCore = true;
+		if( name=='addons') this.isCore = false;
 	}
 	
 	get info()
