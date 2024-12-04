@@ -3,7 +3,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
-
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 import {/*classes, */rootClass, nodes} from "./hierarchy.js";
 
@@ -401,47 +401,169 @@ toPolar( rootClass );
 
 // materials and geometries for the tree branches
 var colors = {
-	false: 'steelblue', // is addon
-	true: 0x606060, // is core
+	addon: new THREE.Color('steelblue'),
+	core: new THREE.Color('black'),
 }
 
-var materials = {
-	false: new THREE.MeshBasicMaterial({color:colors[false]}), // is addon
-	true: new THREE.MeshBasicMaterial({color:colors[true]}), // is core
-}
+var meshes = {};
 
-var geometries = {};
-
-function defineGeometries( )
+function generateBubbleShape(R,r,H,h)
 {
-	// circle-to-rectangle
-	
 	var s = Math.sqrt(2);
-	var R = 0.4;
-	var r = 0.1;
-	var H = 0.7;
-	var h = 0.8;
-	var shape = new THREE.Shape();
-		shape.moveTo( R, 0 ); //1
-		for( let i=0; i<10; i++ ) shape.lineTo( R*Math.cos(i/10*Math.PI/4), R*Math.sin(i/10*Math.PI/4) );
-		//shape.moveTo( R/s, R/s ); //1
-		shape.quadraticCurveTo( r, R*s-r, r, H ); // 2, 3
-		shape.lineTo( r, H+h ); // 4
-		shape.lineTo( -r, H+h ); // 5
-		shape.lineTo( -r, H ); // 6
-		shape.quadraticCurveTo( -r, R*s-r, -R/s, R/s ); // 7, 8
-		for( let i=9; i>=0; i-- ) shape.lineTo( -R*Math.cos(i/10*Math.PI/4), R*Math.sin(i/10*Math.PI/4) );
-		//shape.lineTo( R/s, R/s ); // 1
-		shape.lineTo( R, 0 ); // 1
+	var n = 10;
+	
+	var bubbleShape = new THREE.Shape();
+		bubbleShape.moveTo( R, 0 ); //1
+		for( let i=0; i<n; i++ )
+			bubbleShape.lineTo( R*Math.cos(i/n*Math.PI/4), R*Math.sin(i/n*Math.PI/4) );
+		bubbleShape.quadraticCurveTo( r, R*s-r, r, H ); // 2, 3
+		if( h>0 )
+		{
+			bubbleShape.lineTo( r, H+h ); // 4
+			bubbleShape.lineTo( -r, H+h ); // 5
+		}
+		bubbleShape.lineTo( -r, H ); // 6
+		bubbleShape.quadraticCurveTo( -r, R*s-r, -R/s, R/s ); // 7, 8
+		for( let i=n-1; i>=0; i-- )
+			bubbleShape.lineTo( -R*Math.cos(i/n*Math.PI/4), R*Math.sin(i/n*Math.PI/4) );
+		bubbleShape.lineTo( R, 0 ); // 1
 		
-	geometries.circleToRect = new THREE.ShapeGeometry( shape );
+	return bubbleShape;
+}
 
+
+var R = 0.4;
+var r = 0.1;
+var H = 0.7;
+var h = VSCALE/2-H-2*r;
+
+function defineMeshes( )
+{
+
+	// bubble
+
+	var bubbleShape = generateBubbleShape(R,r,H,h);
+	var bubble = new THREE.ShapeGeometry( bubbleShape );
+
+	meshes.bubbleCore = new THREE.Mesh(
+		bubble,
+		new THREE.MeshBasicMaterial({color:colors.core})
+	);
+	
+	meshes.bubbleAddon = new THREE.Mesh(
+		bubble,
+		new THREE.MeshBasicMaterial({color:colors.addon})
+	);
+
+	// multicolor bubble
+
+	bubbleShape = generateBubbleShape(R,r,H,0);
+	bubble = mergeGeometries( [
+		new THREE.ShapeGeometry( bubbleShape ),
+		new THREE.PlaneGeometry( 2*r, h ).translate(0,H+h/2,0)
+	] );
+	
+	var pos = bubble.getAttribute( 'position' );
+	var col = new THREE.Float32BufferAttribute( 3*pos.count, 3 );
+	for( var i=0; i<pos.count; i++ )
+		if( pos.getY(i)>H+h/2 )
+			col.setXYZ(i,colors.core.r,colors.core.g,colors.core.b)
+		else
+			col.setXYZ(i,colors.addon.r,colors.addon.g,colors.addon.b)
+
+	bubble.setAttribute( 'color', col);
+
+
+	meshes.bubbleCoreToAddon = new THREE.Mesh(
+		bubble,
+		new THREE.MeshBasicMaterial({vertexColors:true})
+	);
+
+	
 	// circle
 	
-	geometries.circle = new THREE.CircleGeometry( R, 32, 0, Math.PI );
+	var circle = new THREE.CircleGeometry( R, 32, 0, Math.PI );
+	
+	meshes.circleCore = new THREE.Mesh(
+		circle,
+		new THREE.MeshBasicMaterial({color:colors.core})
+	);
+	
+	meshes.circleAddon = new THREE.Mesh(
+		circle,
+		new THREE.MeshBasicMaterial({color:colors.addon})
+	);
+	
+	
+	// connector
+	
+	var connector = new THREE.RingGeometry( 1*r, 3*r, 16, 1, Math.PI, Math.PI/2).translate(2*r,-H-h,0);
+
+	meshes.connectorCore = new THREE.Mesh(
+		connector,
+		new THREE.MeshBasicMaterial({color:colors.core})
+	);
+
+	meshes.connectorAddon = new THREE.Mesh(
+		connector,
+		new THREE.MeshBasicMaterial({color:colors.addon})
+	);
+
+	
+	var straight = new THREE.PlaneGeometry( 2*r, 2*r).translate(0,-H-h-r,0);
+
+	meshes.straightCore = new THREE.Mesh(
+		straight,
+		new THREE.MeshBasicMaterial({color:colors.core})
+	);
+
+	meshes.straightAddon = new THREE.Mesh(
+		straight,
+		new THREE.MeshBasicMaterial({color:colors.addon})
+	);
+
+	
+	var long2 = new THREE.PlaneGeometry( 2*r, 4*r).translate(0,-H-h-2*r,0);
+
+	meshes.longCore = new THREE.Mesh(
+		long2,
+		new THREE.MeshBasicMaterial({color:colors.core})
+	);
+
+	meshes.longAddon = new THREE.Mesh(
+		long2,
+		new THREE.MeshBasicMaterial({color:colors.addon})
+	);
+
+	
+	var horizontal = new THREE.PlaneGeometry( 1, 2*r).translate(0,H+h+2*r,0);
+
+	meshes.horizontalCore = new THREE.Mesh(
+		horizontal,
+		new THREE.MeshBasicMaterial({color:colors.core})
+	);
+
+	meshes.horizontalAddon = new THREE.Mesh(
+		horizontal,
+		new THREE.MeshBasicMaterial({color:colors.addon})
+	);
+
+	
+	var vertical = new THREE.PlaneGeometry( 2*r, VSCALE);//.translate(0,-VSCALE/2,0);
+
+	meshes.verticalCore = new THREE.Mesh(
+		vertical,
+		new THREE.MeshBasicMaterial({color:colors.core})
+	);
+
+	meshes.verticalAddon = new THREE.Mesh(
+		vertical,
+		new THREE.MeshBasicMaterial({color:colors.addon})
+	);
+	
 }
 
-defineGeometries();
+defineMeshes();
 
 
 
@@ -452,17 +574,172 @@ function drawLevels( node, size=2 )
 	ball.position.set( node.x, VSCALE*node.y, 0*Math.random() );
 	scene.add( ball );	
 
-	var ball2;
-	//if( !node.isZone )
-	if( node.name )
-	{
-		var ball2up = new THREE.Mesh( node.children.length>0 ? geometries.circleToRect : geometries.circle, materials[node.isCore] );
-		ball.add( ball2up );	
+	var mesh, mesh2, mesh3;
 
-		var ball2down = new THREE.Mesh( node.parent ? geometries.circleToRect : geometries.circle, materials[node.isCore] );
-		ball2down.rotation.z = Math.PI;
-		ball.add( ball2down );	
+	// draw top of node
+
+	if( node.children.length>0 )
+	{ // has children
+
+		let min = node.children[0].x;
+		let max = node.children[node.children.length-1].x;
+
+		if( node.isCore )
+		{
+			if( node.name )
+				mesh = meshes.bubbleCore.clone();
+			else
+				mesh = meshes.verticalCore.clone();
+				
+			if( min < node.x )
+				mesh2 = meshes.connectorCore.clone();
+			if( max > node.x )
+				mesh3 = meshes.connectorCore.clone();
+		}
+		else
+		{
+			if( node.name )
+				mesh = meshes.bubbleAddon.clone();
+			else
+				mesh = meshes.verticalAddon.clone();
+			
+			if( node.children[0].x < node.x )
+				mesh2 = meshes.connectorAddon.clone();
+			if( node.children[node.children.length-1].x > node.x )
+				mesh3 = meshes.connectorAddon.clone();
+		}
+		if( mesh2 )
+		{
+			mesh2.scale.x = -1;
+			mesh2.scale.y = -1;
+			ball.add( mesh2 );	
+		}
+		if( mesh3 )
+		{
+			mesh3.scale.y = -1;
+			ball.add( mesh3 );	
+		}
 	}
+	else
+	{ // no children, a leaf
+		if( node.isCore )
+			mesh = meshes.circleCore.clone();
+		else
+			mesh = meshes.circleAddon.clone();
+	}
+	if( mesh )
+	{
+		ball.add( mesh );	
+	}
+
+
+	mesh2 = undefined;
+	mesh3 = undefined;
+	
+	// draw horizontals
+	if( node.children.length>0 )
+	{
+		let min = node.children[0].x;
+		let max = node.children[node.children.length-1].x;
+		
+		if( node.isCore )
+		{
+			if( min < node.x )
+			{
+				mesh2 = meshes.horizontalCore.clone();
+				mesh2.scale.x = node.x-min-4*r;
+				mesh2.position.x = -(node.x-min)/2;
+			}
+			if( max > node.x )
+			{
+				mesh3 = meshes.horizontalCore.clone();
+				mesh3.scale.x = max-node.x-4*r;
+				mesh3.position.x = (max-node.x)/2;
+			}
+		}
+		else
+		{
+			if( min < node.x )
+			{
+				mesh2 = meshes.horizontalAddon.clone();
+				mesh2.scale.x = node.x-min-4*r;
+				mesh2.position.x = -(node.x-min)/2;
+			}
+			if( max > node.x )
+			{
+				mesh3 = meshes.horizontalAddon.clone();
+				mesh3.scale.x = max-node.x-4*r;
+				mesh3.position.x = (max-node.x)/2;
+			}
+		}
+		if( mesh2 )
+		{
+			ball.add( mesh2 );	
+		}
+		if( mesh3 )
+		{
+			ball.add( mesh3 );	
+		}
+	}
+	
+	
+	// draw bottom of node
+
+	mesh = undefined;
+	mesh2 = undefined;
+	
+	if( node.parent )
+	{ // has parent
+
+		if( node.isCore )
+		{
+			if( node.name ) mesh = meshes.bubbleCore.clone();
+			if( node.x == node.parent.x )
+			{
+				mesh2 = meshes.longCore.clone();
+			}
+			else
+				mesh2 = meshes.connectorCore.clone();
+		}
+		else
+		{
+			if( node.parent.isCore )
+			{
+				if( node.name ) mesh = meshes.bubbleCoreToAddon.clone();
+				if( node.x == node.parent.x )
+				{
+					mesh2 = meshes.longCore.clone();
+				}
+				else
+					mesh2 = meshes.connectorCore.clone();
+			}
+			else
+			{
+				if( node.name ) mesh = meshes.bubbleAddon.clone();
+				if( node.x == node.parent.x )
+				{
+					mesh2 = meshes.longAddon.clone();
+				}
+				else
+					mesh2 = meshes.connectorAddon.clone();
+			}
+		}
+	}
+	else
+	{ // no parent, this is the root
+		mesh = meshes.circleCore.clone();
+	}
+	if( mesh )
+	{
+		mesh.rotation.z = Math.PI;
+		ball.add( mesh );	
+	}
+	if( mesh2 )
+	{
+		if( node.x > node.parent.x ) mesh2.scale.x = -1;
+		ball.add( mesh2 );	
+	}
+	
 	
 	// label
 	if( node.name )
@@ -481,21 +758,12 @@ function drawLevels( node, size=2 )
 	}
 				
 	size = 0.8*size+0.2;
+	
 	for( var i=0; i<node.children.length; i++ )
 	{
-		var child = drawLevels(node.children[i], size );
-		
-		var s = Math.sign(child.position.x-ball.position.x);
-		var v0 = new THREE.Vector3( child.position.x, child.position.y-0.5*VSCALE, 0 );
-		var v1 = new THREE.Vector3( child.position.x-0.25*s, child.position.y-0.5*VSCALE, 0 );
-		var v2 = new THREE.Vector3( ball.position.x+0.25*s, ball.position.y+0.5*VSCALE, 0 );
-		var v3 = new THREE.Vector3( ball.position.x, ball.position.y+0.5*VSCALE, 0 );
-		//var h0 = new THREE.Vector3( child.position.x, ball.position.y, 0 );
-		
-		//points[node.children[i].isCore].push( ball.position,v3,v3,v2,v2,v1,v1,v0,v0,child.position ); // max segmented
-		points[node.children[i].isCore].push( ball.position,v3,v3,v0,v0,child.position ); // min segmented
-		//points[node.children[i].isCore].push( ball.position,child.position ); // direct
+		drawLevels(node.children[i], size );
 	}
+	
 	
 	return ball;
 } // drawLevels
@@ -510,7 +778,7 @@ scene.add( new THREE.LineSegments(
 			) );
 scene.add( new THREE.LineSegments(
 				new THREE.BufferGeometry().setFromPoints( points[true] ), 
-				new THREE.LineBasicMaterial({color:0x606060})
+				new THREE.LineBasicMaterial({color:'black'})
 			) );
 
 
