@@ -5,13 +5,13 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-import {/*classes, */rootClass, nodes} from "./hierarchy.js";
+import {/*classes, */rootClass, nodes, findNode} from "./hierarchy.js";
 
 
 var renderer, cssRenderer, scene, camera, light, controls;
 
-var VSCALE = 3;
-var CAMERA_POS = new THREE.Vector3( 120, 20, 10 );
+var VSCALE = 2;
+var CAMERA_POS = new THREE.Vector3( 80, 0, 10 );
 
 
 function init( )
@@ -34,6 +34,7 @@ function init( )
 				
 	scene = new THREE.Scene();
 	scene.background = new THREE.Color( 'white' );
+//	scene.rotation.z = -Math.PI/2;
 
 	camera = new THREE.PerspectiveCamera( 60, innerWidth/innerHeight );
 	camera.position.copy( CAMERA_POS );
@@ -47,9 +48,12 @@ function init( )
 
 	controls = new OrbitControls( camera, cssRenderer.domElement );
 	//controls.enableDamping = true;*
+	controls.enableRotate = false;
 	controls.target.set( CAMERA_POS.x, CAMERA_POS.y, 0 );
 	controls.addEventListener( 'change', animationLoop );
-	controls.zoomSpeed = 4;
+	controls.zoomSpeed = 10;
+	controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+
 
 	// manage window resizes
 
@@ -84,55 +88,14 @@ function animationLoop( /*t*/ ) {
 
 
 
-// find a node (incl. zones) by its properties
-
-function findNode( nodeName, isCore, parentName=null )
-{
-	var foundNodes = nodes.filter( x=>x.name==nodeName && x.isCore==isCore && (parentName==null || parentName==x.parent.name) );
-	if( foundNodes.length==0 )
-	{
-		console.error(`Node ${nodeName} is not found` );
-		return null;
-	}
-	if( foundNodes.length>1 )
-	{
-		console.error(`Node ${nodeName} is not unique` );
-		console.error(foundNodes );
-		return null;
-	}
-	return foundNodes[0];
-} // findNode
-
-
-
-// shift node to the righy jumping over n siblings
-
-function shiftNode( nodeName, isCore, n, parentName=null )
-{
-	var node = findNode( nodeName, isCore, parentName );
-	if( node==null ) return;
-
-	var i = node.parent.children.indexOf( node );
-	if( i<0 )
-	{
-		console.error(`Node ${nodeName} is not found in its parent's children` );
-		return;
-	}
-	
-	node.parent.children.splice( i, 1 );
-	node.parent.children.splice( i+n, 0, node );
-}
-
-
-
 // shift graphically a range of nodes
 
-function moveNodes( nodeName1, nodeName2, isCore, n )
+function moveNodes( nodeName1, nodeName2, n, parentName=null, grandparentName=null )
 {
-	var node1 = findNode( nodeName1, isCore );
+	var node1 = findNode( nodeName1, parentName, grandparentName );
 	if( node1==null ) return;
 
-	var node2 = findNode( nodeName2, isCore );
+	var node2 = findNode( nodeName2, parentName, grandparentName );
 	if( node2==null ) return;
 
 	if( node1.y!=node2.y )
@@ -163,12 +126,12 @@ function moveNodes( nodeName1, nodeName2, isCore, n )
 
 // shift graphically a range of nodes and their subtrees
 
-function moveNodesRecursive( nodeName1, nodeName2, isCore, n, parentName=null )
+function moveNodesRecursive( nodeName1, nodeName2, n, parentName=null, grandparentName=null )
 {
-	var node1 = findNode( nodeName1, isCore, parentName );
+	var node1 = findNode( nodeName1, parentName, grandparentName );
 	if( node1==null ) return;
 
-	var node2 = findNode( nodeName2, isCore, parentName );
+	var node2 = findNode( nodeName2, parentName, grandparentName );
 	if( node2==null ) return;
 
 	if( node1.y!=node2.y )
@@ -201,36 +164,6 @@ function moveNodesRecursive( nodeName1, nodeName2, isCore, n, parentName=null )
 		move(levels[node1.y][i],n);
 } // moveNodesRecursive
 
-
-
-// reorder nodes
-
-function shiftNodes()
-{
-	shiftNode( 'textures', false, 2 );
-	shiftNode( 'lights', false, 2 );
-	shiftNode( 'TSLEncoder', false, 1 );
-	shiftNode( 'Transpiler', false, -1 );
-	shiftNode( 'ConvexHull.js', false, 2 );
-	shiftNode( 'webgl', true, 1 );
-	shiftNode( 'webxr', true, -3 );
-
-	shiftNode( 'lights', true, 1 );
-	shiftNode( 'core', true, 1, 'extras' );
-	shiftNode( 'nodes', true, -5, 'common' );
-	shiftNode( 'extras', true, 1, 'common' );
-	shiftNode( 'Backend', true, -2 );
-	shiftNode( 'Pipeline', true, 2 );
-	shiftNode( 'ChainMap', true, -1 );
-	shiftNode( 'Texture', true, -1 );
-	shiftNode( 'RenderTarget', true, -1 );
-	shiftNode( 'Controls', true, -2 );
-	shiftNode( 'SpriteMaterial', true, 1 );
-	shiftNode( 'UniformsGroup', true, -1, 'EventDispatcher' );
-} // shiftNodes
-
-
-//shiftNodes();
 
 
 
@@ -352,17 +285,25 @@ centerParents( rootClass );
 // reposition nodes (keeping the same order)
 function repositionNodes()
 {
-	moveNodesRecursive( 'UniformGroup', 'NodeVar', true, -2 );
-	moveNodesRecursive( 'ShapePath', 'Curve', true, -2 );
-	moveNodes( 'Box2', 'Box3', true, 5 );
-	moveNodes( 'EffectComposer', 'EffectComposer', false, 2 );
-	moveNodes( 'postprocessing', 'postprocessing', false, 1 );
-	moveNodesRecursive( 'renderers', 'renderers', true, -2 );
-	moveNodesRecursive( 'MeshStandardMaterial', 'LineBasicMaterial', true, -6 );
-	moveNodesRecursive( 'core', 'core', true, -2, '' );
+	moveNodes( 'transpiler', 'transpiler', 1.5, 'addons', '%Three.js%'	);
+	moveNodes( 'common', 'common', 0.75, 'renderers' );
+	moveNodes( 'Material', 'Material', 1.75 );
+	moveNodesRecursive( 'NodeMaterial', 'NodeMaterial', -0.5 );
+	moveNodes( 'NodeMaterial', 'NodeMaterial', 0.5 );
+	moveNodes( 'Line', 'Line', 1.25 );
+	moveNodes( 'Mesh', 'Mesh', 1 );
+	moveNodes( 'InstancedMesh', 'BatchedMesh', 1.5 );
+	moveNodes( 'EventDispatcher', 'EventDispatcher', -0.25 );
+	moveNodes( 'core', 'core', -4.5, 'src' );
+	// moveNodesRecursive( 'ShapePath', 'Curve', true, -2 );
+	// moveNodes( 'EffectComposer', 'EffectComposer', false, 2 );
+	// moveNodes( 'postprocessing', 'postprocessing', false, 1 );
+	// moveNodesRecursive( 'renderers', 'renderers', true, -2 );
+	// moveNodesRecursive( 'MeshStandardMaterial', 'LineBasicMaterial', true, -6 );
+	// moveNodesRecursive( 'core', 'core', true, -2, '' );
 } // repositionNodes
 
-//repositionNodes();
+repositionNodes();
 
 
 // calc span -- for debug purposes
@@ -379,7 +320,6 @@ function calcSpan( node )
 
 calcSpan( rootClass/*.children[0]*/ );
 
-console.log('Span',maxX-minX,`(${ ((maxX-minX)/9.03).toFixed(1)}%)`,' <- 293.5 (32.5%) <- 903');
 
 /*
 function toPolar( node )
@@ -433,7 +373,7 @@ function generateBubbleShape(R,r,H,h)
 
 
 var R = 0.4;
-var r = 0.1;
+var r = 0.08;
 var H = 0.7;
 var h = VSCALE/2-H-2*r;
 
@@ -560,7 +500,38 @@ function defineMeshes( )
 		vertical,
 		new THREE.MeshBasicMaterial({color:colors.addon})
 	);
+
 	
+	var verticalZone = new THREE.PlaneGeometry( 2*r, VSCALE-4*r);//.translate(0,-VSCALE/2,0);
+
+	meshes.verticalZoneCore = new THREE.Mesh(
+		verticalZone,
+		new THREE.MeshBasicMaterial({color:colors.core})
+	);
+
+	meshes.verticalZoneAddon = new THREE.Mesh(
+		verticalZone,
+		new THREE.MeshBasicMaterial({color:colors.addon})
+	);
+
+	
+	verticalZone = new THREE.PlaneGeometry( 2*r, VSCALE-4*r);//.translate(0,-VSCALE/2,0);
+
+	pos = verticalZone.getAttribute( 'position' );
+	col = new THREE.Float32BufferAttribute( 3*pos.count, 3 );
+	for( var i=0; i<pos.count; i++ )
+		if( pos.getY(i)>0 )
+			col.setXYZ(i,colors.core.r,colors.core.g,colors.core.b)
+		else
+			col.setXYZ(i,colors.addon.r,colors.addon.g,colors.addon.b)
+
+	verticalZone.setAttribute( 'color', col);
+
+	meshes.verticalCoreToAddon = new THREE.Mesh(
+		verticalZone,
+		new THREE.MeshBasicMaterial({vertexColors:true})
+	);
+
 }
 
 defineMeshes();
@@ -586,6 +557,9 @@ function drawLevels( node, size=2 )
 
 		if( node.isCore )
 		{
+			if( node.isZone )
+				mesh = meshes.verticalZoneCore.clone();
+			else
 			if( node.name )
 				mesh = meshes.bubbleCore.clone();
 			else
@@ -598,6 +572,9 @@ function drawLevels( node, size=2 )
 		}
 		else
 		{
+			if( node.isZone )
+				mesh = meshes.verticalZoneAddon.clone();
+			else
 			if( node.name )
 				mesh = meshes.bubbleAddon.clone();
 			else
@@ -693,7 +670,7 @@ function drawLevels( node, size=2 )
 
 		if( node.isCore )
 		{
-			if( node.name ) mesh = meshes.bubbleCore.clone();
+			if( node.name && !node.isZone ) mesh = meshes.bubbleCore.clone();
 			if( node.x == node.parent.x )
 			{
 				mesh2 = meshes.longCore.clone();
@@ -705,7 +682,11 @@ function drawLevels( node, size=2 )
 		{
 			if( node.parent.isCore )
 			{
-				if( node.name ) mesh = meshes.bubbleCoreToAddon.clone();
+				if( node.isZone )
+					mesh = meshes.verticalCoreToAddon.clone();
+				else
+					if( node.name ) mesh = meshes.bubbleCoreToAddon.clone();
+				
 				if( node.x == node.parent.x )
 				{
 					mesh2 = meshes.longCore.clone();
@@ -715,7 +696,7 @@ function drawLevels( node, size=2 )
 			}
 			else
 			{
-				if( node.name ) mesh = meshes.bubbleAddon.clone();
+				if( node.name && !node.isZone ) mesh = meshes.bubbleAddon.clone();
 				if( node.x == node.parent.x )
 				{
 					mesh2 = meshes.longAddon.clone();
@@ -747,6 +728,7 @@ function drawLevels( node, size=2 )
 		var labelDiv = document.createElement( 'div' );
 		labelDiv.className = node.isCore?'labelCore':'labelAddon';
 		if( node.isZone ) labelDiv.classList.add( 'zone' );
+		if( !node.hasDocs && !node.isZone ) labelDiv.classList.add( 'noDocs' );
 		//labelDiv.innerHTML = (node.isZone/*||node.isZoneJS*/)?'('+node.name+')':node.name;
 		labelDiv.innerHTML = node.wrappedName;
 		//labelDiv.textContent = (node.isZone||node.isZoneJS||node.isZoneFake)?'('+node.children.length+')':node.children.length;
@@ -754,6 +736,11 @@ function drawLevels( node, size=2 )
 		var label = new CSS3DObject( labelDiv );
 		label.position.set( node.x, VSCALE*node.y, 0 );
 		label.scale.setScalar( 0.007 );
+		if( node.isZone )
+		{
+			label.rotation.z = Math.PI/2;
+			label.position.y += 0.2*VSCALE;
+		}
 		scene.add( label );
 	}
 				
@@ -810,3 +797,5 @@ rootClass.dump(true);
 console.groupEnd( 'Final classes' );
 
 //console.log( rootClass )
+
+console.log('Span',maxX-minX,' <- 344');

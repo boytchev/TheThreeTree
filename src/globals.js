@@ -53,9 +53,8 @@ class Class {
 		this.children = children;
 		this.isRoot = false;
 		this.isZone = false;		// a folder containing files with classes
-		//this.isZoneJS = false;		// a js file containing classes
-		//this.isZoneFake = false;	// a fake zone to make subtrees thinner and taller
 		this.isCore = isCore;
+		this.hasDocs = false;
 	}
 	
 	get info()
@@ -110,13 +109,6 @@ class Class {
 		
 		return result;
 	}
-	
-	// get isCore()
-	// {
-		// if( this.name == 'addons' ) return false;
-		// if( !this.parent ) return true;
-		// return this.parent.isCore;
-	// }
 	
 	
 	sort( )
@@ -205,6 +197,11 @@ class ZoneClass extends Class {
 	get info()
 	{		
 		return `{${this.name}}`;
+	}
+	
+	get wrappedName()
+	{
+		return this.name;
 	}
 }
 

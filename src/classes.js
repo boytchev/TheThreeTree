@@ -12,6 +12,9 @@ import {sorter, isClassName, Class, RootClass} from './globals.js';
 import {DATA_SRC} from "./data/data-src.js";
 import {DATA_ADDONS} from "./data/data-addons.js";
 
+import {DOCS_SRC} from "./data/docs-src.js";
+import {DOCS_ADDONS} from "./data/docs-addons.js";
+
 
 
 var classes = [ new RootClass() ];
@@ -76,6 +79,7 @@ classes.sort( sorter );
 
 
 
+
 // remove all classes for which there is no export
 for( let i=classes.length-1; i>=0; i-- ) if( !classes[i].isRoot )
 	if( exports.some( e=> e.name==classes[i].name && e.fileName==classes[i].fileName) == false )
@@ -85,6 +89,44 @@ for( let i=classes.length-1; i>=0; i-- ) if( !classes[i].isRoot )
 	}
 
 console.groupEnd()
+
+
+
+function processDocs( data, isCore )
+{
+	data = data.split( '\n' );
+	
+	var result = [];
+	
+	data = data.map( row => {
+			if( row.indexOf('.html')>=0 )
+				row = row.split( '|en|' ).pop().split('.html')[0];
+			else
+				row = '';
+			return row;
+		}
+	);
+	
+	data = data.filter( row => row ); // remove empty rows
+
+	var prefix = isCore ? 'src|' : 'addons|';
+	
+	for( var c of classes ) if( c.isCore == isCore && c.fileName )
+	{
+		
+		var classPath = c.fileName.split('.js')[0].substring(prefix.length);
+
+		var idx = data.find( docsPath => classPath == docsPath );
+		if( idx && c.fileName.indexOf('|'+c.name+'.js')>=0 )
+		{
+			c.hasDocs = true;
+		}
+	}
+}
+
+
+processDocs( DOCS_SRC, true );
+processDocs( DOCS_ADDONS, false );
 
 
 

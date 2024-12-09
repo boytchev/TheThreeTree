@@ -72,12 +72,33 @@
 		}
 
 		.zone {
-			text-align: center;
-			#color: dimgray;
+			text-align: left;
+			color: white;
+			border-radius: 0;
+			height: 1em;
+			width: 20em;
 			font-family: sans-serif;
-			#background: lightgray;
+			background: none;
 			#border-radius: 4em;
 			#padding: 0.5em 0.5em;
+		}
+		
+		.labelCore.zone {
+			#background: black;
+		}
+		
+		.labelAddon.zone {
+			#background: steelblue;
+		}
+		
+		.noDocs {
+
+			#background: radial-gradient(circle at 50%, white 63%, pink 65%, crimson 68%, white 70%);
+
+			border: solid 0.2em crimson;
+
+			#background: yellow;
+			#color: crimson;
 		}
 	</style>
 	<script src="thethreetree.js" type="module"></script>

@@ -21,6 +21,30 @@ REM echo `; >> %dstdir%\data-build.js
 
 
 
+echo Parse %srcdir%\docs\api\en
+
+cd %srcdir%\docs\api\en
+echo export const DOCS_SRC = ` > %dstdir%\temp.js
+dir /b /s >> %dstdir%\temp.js
+echo `; >> %dstdir%\temp.js
+cscript %curdir%\src\parse-docs.vbs //NoLogo %dstdir%\temp.js > %dstdir%\docs-src.js
+del %dstdir%\temp.js
+
+
+
+
+
+echo Parse %srcdir%\docs\examples\en
+
+cd %srcdir%\docs\examples\en
+echo export const DOCS_ADDONS = ` > %dstdir%\temp.js
+dir /b /s >> %dstdir%\temp.js
+echo `; >> %dstdir%\temp.js
+cscript %curdir%\src\parse-docs.vbs //NoLogo %dstdir%\temp.js > %dstdir%\docs-addons.js
+del %dstdir%\temp.js
+
+
+
 
 echo Parse %srcdir%\src
 
