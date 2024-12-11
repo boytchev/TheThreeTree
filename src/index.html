@@ -24,23 +24,26 @@
 			font-family: Cordana, Calibri, sans-serif;
 		}
 
-		h1, h3 {
-			color: black;
-			
-			left: 0;
-			margin: 0;
-			
+		.header {
+			position: absolute;
 			z-index: 1;
 			text-align: center;
+			left: 0;
+			margin: 0;
 			width: 100%;
-			
-			font-size: 2em;
-			font-weight: bold;
-			margin-top: 1em;
+			background: rgba( 250, 250, 255, 0.7 );
+			backdrop-filter: blur(0.1em);
 		}
-
-		h3 {
-			font-size: 1.25em;
+		
+		h1, h2 {
+			font-variant: small-caps;
+			margin: 0.5em auto 0 auto;
+		}
+		
+		h2 {
+			color: SteelBlue;
+			margin: 0 auto 0.5em auto;
+			font-variant: small-caps;
 			font-weight: normal;
 		}
 
@@ -56,6 +59,21 @@
 			display: grid;
 			align-items: center;
 		}
+/*
+		.labelCore {
+			text-align: center;
+			font-family: sans-serif;
+
+			width: 6em;
+			height: 6em;
+			background: white;
+			border-radius: 6em;
+			border: solid 0.2em black;
+			
+			display: grid;
+			align-items: center;
+		}
+*/		
 
 		.labelAddon {
 			text-align: center;
@@ -71,6 +89,26 @@
 			align-items: center;
 		}
 
+/*
+		.labelAddon {
+			text-align: center;
+			color: steelblue;
+			font-family: sans-serif;
+
+			width: 6em;
+			height: 6em;
+			background: white;
+			border-radius: 6em;
+			border: solid 0.2em steelblue;
+			
+			display: grid;
+			align-items: center;
+		}
+
+		.labelCore:hover{background:yellow}
+		.labelAddon:hover{background:yellow}
+*/		
+
 		.zone {
 			text-align: left;
 			color: white;
@@ -82,7 +120,16 @@
 			#border-radius: 4em;
 			#padding: 0.5em 0.5em;
 		}
-		
+/*		
+		.zone {
+			text-align: left;
+			color: gray;
+			height: 1em;
+			width: 20em;
+			font-family: sans-serif;
+			background: none;
+		}
+*/
 		.labelCore.zone {
 			#background: black;
 		}
@@ -92,20 +139,19 @@
 		}
 		
 		.noDocs {
-
-			#background: radial-gradient(circle at 50%, white 63%, pink 65%, crimson 68%, white 70%);
-
 			border: solid 0.2em crimson;
-
-			#background: yellow;
-			#color: crimson;
 		}
 	</style>
+	<script>
+		INCLUDE_ADDONS = true;
+	</script>
 	<script src="thethreetree.js" type="module"></script>
 </head>
 
 <body>
-	<h1>The Three Tree</h1>
-	<h3>Hierarchy builder</h3>	
+	<div class="header">
+		<h1>The Three of Three.js</h1>	
+		<h2>and its addons</h2>	
+	</div>
 </body>
 </html>

@@ -178,44 +178,8 @@ if( originalClassesCount != calculateCount(rootClass) )
 }
 
 
-rootClass.sort();
+//rootClass.sort();
 
-
-// add fake zones to node with too many children
-/*
-function addFakeZones( node )
-{
-	var k=0; // keep the first k and the last k on the same level
-	
-	if( node.children.length>18 ) k = 6;
-//	else
-//	if( node.children.length>5 ) k = 2;
-		
-	if( k > 0 )
-	{		
-		var	zone = new ZoneClass( '' );
-		zone.parent = node;
-		
-		for( var i=k; i<node.children.length-k; i++ )
-		{
-			node.children[i].setParent( zone );
-		} // for
-		
-		// remove all ex-children that have moved to a new parent
-		//node.children = node.children.filter( e => e.parent==node );
-		// remove all ex-children that have moved to a new parent
-		node.children = node.children.filter( e => e.parent==node );
-		node.children.splice( k, 0, zone );
-		
-//		node.children.sort( sorter );
-	}
-	
-	// recursively process children
-	node.children.forEach( e => addFakeZones(e) );
-}
-
-addFakeZones( rootClass );
-*/
 
 
 // complete isCore -- because there are some classes with unset isCore
@@ -242,9 +206,12 @@ function collectNodes( node )
 		collectNodes(node.children[i] );
 }
 
+
 collectNodes( rootClass );
 
+for( var i in nodes ) nodes[i].idx = i;
 
+/* ****************************************
 
 // find a node (incl. zones) by its properties
 
@@ -264,14 +231,13 @@ function findNode( nodeName, parentName=null, grandparentName=null )
 	}
 	return foundNodes[0];
 } // findNode
-
+*/
 
 // shift node to the righт jumping over n siblings
 
-function shiftNode( nodeName, n, parentName=null, grandparentName=null )
+function shiftNode( idx, n )
 {
-	var node = findNode( nodeName, parentName, grandparentName );
-	if( node==null ) return;
+	var node = nodes[idx];
 
 	var i = node.parent.children.indexOf( node );
 	if( i<0 )
@@ -285,48 +251,75 @@ function shiftNode( nodeName, n, parentName=null, grandparentName=null )
 }
 
 
-// raise node upwards by adding fake zone
-
-function raiseNode( nodeName, parentName=null, grandparentName=null )
+// raise node upwards by adding fake zone on top of it
+function raiseNode( idx, n=1 )
 {
-	var node = findNode( nodeName, parentName, grandparentName );
-	if( node==null ) return;
-	
-	var	zone = new ZoneClass( '' );
-	zone.parent = node;
-	zone.isCore = node.isCore;
+	for( var i=0; i<n; i++ )
+	{
+		var node = nodes[idx];
+		
+		var	zone = new ZoneClass( );
+		zone.parent = node;
+		zone.isCore = node.isCore;
+		zone.idx = nodes.length;
+		nodes.push( zone );
 
-	for( var child of node.children ) child.setParent( zone );
-	
-	node.children = [zone];
+		for( var child of node.children ) child.setParent( zone );
+		
+		node.children = [zone];
+	}
+}
+
+
+// lift node upwards by adding fake zone below it
+function liftNode( idx, n=1 )
+{
+	for( var i=0; i<n; i++ )
+	{
+		var node = nodes[idx];
+		
+		var	zone = new ZoneClass( );
+
+		for( var j=0; j<node.parent.children.length; j++ )
+			if( node.parent.children[j]==node )
+				node.parent.children[j] = zone;
+
+		zone.parent = node.parent;
+		node.parent = zone;
+		zone.children = [node]
+		zone.isCore = node.isCore;
+		zone.idx = nodes.length;
+		nodes.push( zone );
+	}
 }
 
 
 // raise zone children vertically as a flower
 
-function flowerZone( nodeName, n=3, parentName=null, grandparentName=null, maxLevels=100 )
+function flowerNode( idx, n=3, maxLevels=100 )
 {
-	var node = findNode( nodeName, parentName, grandparentName );
-	if( node==null ) return;
+	var node = nodes[idx];
 	
-	flowerZoneHelper( node, n, maxLevels );
+	flowerNodeHelper( node, n, maxLevels );
 }
 
-function flowerZoneHelper( node, n, maxLevels )
+function flowerNodeHelper( node, n, maxLevels )
 {
 	if( maxLevels < 1 ) return;
 	
 	var k=0; // keep the first k and the last k on the same level
 	
-	if( node.children.length>3*n ) k = n;
+	if( node.children.length>2*n ) k = n;
 //	else
 //	if( node.children.length>5 ) k = 2;
 		
 	if( k > 0 )
 	{		
-		var	zone = new ZoneClass( '' );
+		var	zone = new ZoneClass( );
 		zone.parent = node;
 		zone.isCore = node.isCore;
+		zone.idx = nodes.length;
+		nodes.push( zone );
 		
 		for( var i=k; i<node.children.length-k; i++ )
 		{
@@ -343,7 +336,43 @@ function flowerZoneHelper( node, n, maxLevels )
 	}
 	
 	// recursively process children
-	node.children.forEach( e => flowerZoneHelper(e, n, maxLevels-1) );
+	node.children.forEach( e => flowerNodeHelper(e, n, maxLevels-1) );
+}
+
+
+function rangeNode( node1, node2 )
+{
+	node1 = nodes[node1];
+	node2 = nodes[node2];
+	
+	if( node1.parent == node2.parent )
+	{		
+		var node = node1.parent;
+		
+		var	zone = new ZoneClass( );
+		zone.parent = node;
+		zone.isCore = node.isCore;
+		zone.idx = nodes.length;
+		nodes.push( zone );
+		
+		var doit = false;
+		var k = -1;
+		for( var i in node.children )
+		{
+			var child = node.children[i];
+			if( child==node1 ) doit = true;
+			if( doit )
+			{
+				if( k==-1 ) k = i;
+				child.setParent( zone );
+			}
+			if( child==node2 ) doit = false;
+		} // for
+		
+		// remove all ex-children that have moved to a new parent
+		node.children = node.children.filter( e => e.parent==node );
+		node.children.splice( k, 0, zone );
+	}
 }
 
 
@@ -351,109 +380,120 @@ function flowerZoneHelper( node, n, maxLevels )
 
 function manualAdjust()
 {
-	raiseNode( 'Node' );
-	raiseNode( 'Node' );
-	raiseNode( 'Node' );
-	flowerZone( 'Node', 6 );
-	shiftNode( 'InputNode', -9 );
-	shiftNode( 'TempNode', 5 );
-	raiseNode( 'addons / tsl / display', 'TempNode' );
-	flowerZone( 'addons / tsl / display', 3, 'TempNode' );
-	raiseNode( 'TempNode' );
-
-	flowerZone( 'Loader', 3 );
-	raiseNode( 'addons', 'Loader' );
-	shiftNode( 'DataTextureLoader', 3 );
-
-	flowerZone( 'math', 2, 'src', null, 2 );
-	shiftNode( 'math', 4, 'src' );
-	shiftNode( 'Color', 1 );
-	
-	shiftNode( 'animation', 2, 'src' );
-	shiftNode( 'Texture', -1 );
-	shiftNode( 'Data3DTexture', 4 );
-	flowerZone( 'Texture', 3 );
-	shiftNode( 'addons', 13, 'BufferGeometry' );
-	shiftNode( 'RenderTarget', -1 );
-	shiftNode( 'PolyhedronGeometry', -5 );
-	shiftNode( 'ShapeGeometry', -6 );
-	shiftNode( 'PlaneGeometry', -5 );
-	shiftNode( 'Data3DTexture', -6 );
-	shiftNode( 'CanvasTexture', 3 );
-	
-	shiftNode( 'Light', 7 );
-	shiftNode( 'addons', 2, 'Mesh' );
-
-	raiseNode( 'misc / RollerCoaster.js' );
-	
-	flowerZone( 'NodeMaterial', 3 );
-	shiftNode( 'ShaderMaterial', 5 );
-	shiftNode( 'LineBasicMaterial', 5 );
-	shiftNode( 'MeshStandardMaterial', -3 );
-	//raiseNode( 'addons', 'Object3D' );
-	shiftNode( 'addons', 2, 'Object3D' );
-	shiftNode( 'Camera', 1 );
-	
-	shiftNode( 'helpers', -2, 'addons', 'Mesh' );
-	shiftNode( 'lines', 2, 'addons', 'Mesh' );
-//	flowerZone( 'addons', 2, 'Mesh' );
-//	raiseNode( 'objects', '', 'addons' );
-	
-	flowerZone( 'CurveExtras.js', 4 );
-	shiftNode( 'CurvePath', 1 );
-	shiftNode( 'ChainMap', 7 );
-	shiftNode( 'Pipeline', 5 );
-	
-	flowerZone( 'Pass', 4 );
-	flowerZone( 'AST.js', 3 );
-	flowerZone( 'math', 2, 'addons' );
-	flowerZone( 'exporters', 2, 'addons' );
-	flowerZone( 'misc', 2, 'addons', '%Three.js%' );
-	shiftNode( 'postprocessing', 1 );
-	shiftNode( 'animation', -2, 'addons' );
-	raiseNode( 'animation', 'addons' );
-	raiseNode( 'effects', 'addons' );
-	raiseNode( 'utils', 'addons' );
-	raiseNode( 'utils', 'addons' );
-	shiftNode( 'interactive', -2, 'addons', '%Three.js%' );
-	shiftNode( 'effects', 2, 'addons' );
-	shiftNode( 'curves', 7, 'addons' );
-	shiftNode( 'lights', 8, 'addons' );
-	shiftNode( 'TSLEncoder', 1 );
-	shiftNode( 'geometries / DecalGeometry.js', 11 );
-	raiseNode( 'webxr', 'addons', '%Three.js%' );
-	raiseNode( 'webxr', 'addons', '%Three.js%' );
-	shiftNode( 'capabilities', 2 );
-	
-	shiftNode( 'NodeUniform', -2 );
-	shiftNode( 'NodeFrame', -2 );
-	shiftNode( 'NodeCache', -1 );
-	shiftNode( 'NodeBuilder', -3 );
-	shiftNode( 'NodeParser', -2 );
-	shiftNode( 'cameras', 3, 'src' );
-	
-	shiftNode( 'DataMap', -10 );
-	shiftNode( 'extras', 3, 'common' );
-	shiftNode( 'Backend', -3, 'common' );
-	shiftNode( 'Renderer', -2, 'common' );
-	shiftNode( 'webxr', -1, 'renderers' );
-	shiftNode( 'WebGLBufferRenderer', -1 );
-	
-	flowerZone( 'BufferAttribute' );
-	flowerZone( 'addons / controls', 2 );
-	shiftNode( 'Controls', -2 );
-	shiftNode( 'webxr', -1, 'addons', 'Object3D' );
-	raiseNode( 'webxr', 'addons', 'Object3D' );
-	flowerZone( 'LineSegments', 2 );
-	
-	raiseNode( 'objects', 'addons', 'Mesh' );
-	flowerZone( 'objects', 3, 'addons', 'Mesh' );
-	shiftNode( 'Scene', -1 );
-	
-	shiftNode( 'ShadowMaterial', -1 );
-	shiftNode( 'MeshDepthMaterial', -6 );
-	shiftNode( 'LineBasicMaterial', -1 );
-
+	if( INCLUDE_ADDONS )
+	{
+		
+		raiseNode( 1, 7 );
+		shiftNode( 169, -1 );
+		raiseNode( 169 );
+		shiftNode( 166, -1 );
+		rangeNode( 141, 154 );
+		shiftNode( 137, 1 );
+	}
+	else
+	{
+		liftNode( 98, 12 );
+		liftNode( 382, 8 );
+		liftNode( 465, 6 );
+		shiftNode( 75, -3 );
+		liftNode( 75, 5 );
+		shiftNode( 85, -2 );
+		//flowerNode( 75, 3, 1 );
+		shiftNode( 508, -5 );
+		shiftNode( 516, -21 );
+		shiftNode( 496, 5 );
+		shiftNode( 409, -5 );
+		shiftNode( 62, 5 );
+		shiftNode( 520, 4 );
+		shiftNode( 36, 6 );
+		shiftNode( 520, -7 );
+		shiftNode( 524, -3 );
+		
+		shiftNode( 273, 4 );
+		shiftNode( 127, -1 );
+		shiftNode( 145, 2 );
+		shiftNode( 123, 1 );
+		shiftNode( 162, -3 );
+		shiftNode( 114, 8 );
+		shiftNode( 117, 7 );
+		shiftNode( 113, 9 );
+		shiftNode( 116, 7 );
+		shiftNode( 152, -3 );
+		shiftNode( 204, 6 );
+		shiftNode( 188, -12 );
+		liftNode( 188, 1 );
+		flowerNode( 188, 6, 1 );
+		shiftNode( 118, 20 );
+		shiftNode( 176, -3 );
+		shiftNode( 177, -2 );
+		shiftNode( 178, -1 );
+		shiftNode( 181, -1 );
+		shiftNode( 167, -14 );
+		shiftNode( 170, -15 );
+		shiftNode( 109, 29 );
+		shiftNode( 101, 37 );
+		shiftNode( 99, 23 );
+		flowerNode( 98, 10, 1 );
+		
+		shiftNode( 382, 1 );
+		shiftNode( 323, -2 );
+		shiftNode( 275, 3 );
+		
+		flowerNode( 75, 4 );
+		flowerNode( 314, 2, 1 );
+		flowerNode( 273, 3, 1 );
+		
+		shiftNode( 363, 4 );
+		shiftNode( 358, -2 );
+		flowerNode( 355, 5, 1 );
+		shiftNode( 355, 3 );
+		shiftNode( 335, 1 );
+		shiftNode( 348, -11 );
+		shiftNode( 345, -10 );
+		shiftNode( 347, -9 );
+//		flowerNode( 335, 4 );
+		
+		liftNode( 349, 8 );
+		liftNode( 347, 9 );
+		liftNode( 346, 8 );
+		
+		shiftNode( 309, 2 );
+		shiftNode( 334, -4 );
+		shiftNode( 273, -4 );
+		flowerNode( 335, 3, 1 );
+		flowerNode( 559, 2, 1 );
+		shiftNode( 559, 2 );
+		
+		shiftNode( 72, -1 );
+		shiftNode( 63, 7 );
+		shiftNode( 94, -3 );
+		flowerNode( 62, 4, 1 );
+		shiftNode( 266, 1 );
+		
+		shiftNode( 256, 4 );
+		shiftNode( 262, -1 );
+		shiftNode( 243, -3 );
+		shiftNode( 220, 10 );
+		shiftNode( 224, 7 );
+		shiftNode( 230, 5 );
+		shiftNode( 223, 3 );
+		shiftNode( 221, 3 );
+		
+		shiftNode( 406, -5 );
+		shiftNode( 383, 4 );
+		shiftNode( 309, -3 );
+		shiftNode( 417, -4 );
+		shiftNode( 432, -1 );
+		shiftNode( 413, -1 );
+		shiftNode( 294, 1 );
+		liftNode( 296, 8 );
+		liftNode( 298, 8 );
+		liftNode( 300, 8 );
+		liftNode( 302, 8 );
+		liftNode( 304, 8 );
+		liftNode( 306, 8 );
+		liftNode( 308, 8 );
+	}
 } // manualAdjust
 
 manualAdjust();
@@ -461,4 +501,4 @@ manualAdjust();
 
 //console.table( classes )
 
-export {classes, rootClass, nodes, findNode};
+export {classes, rootClass, nodes /*, findNode*/};

@@ -5,14 +5,15 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-import {/*classes, */rootClass, nodes, findNode} from "./hierarchy.js";
+import {/*classes, */rootClass, nodes/*, findNode*/} from "./hierarchy.js";
 
 
 var renderer, cssRenderer, scene, camera, light, controls;
 
 var VSCALE = 2;
-var CAMERA_POS = new THREE.Vector3( 80, 0, 10 );
+var CAMERA_POS = new THREE.Vector3( 222, 10, 10 );
 
+var selectedNode;
 
 function init( )
 {
@@ -51,7 +52,7 @@ function init( )
 	controls.enableRotate = false;
 	controls.target.set( CAMERA_POS.x, CAMERA_POS.y, 0 );
 	controls.addEventListener( 'change', animationLoop );
-	controls.zoomSpeed = 10;
+	controls.zoomSpeed = 40;
 	controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
 
 
@@ -71,7 +72,17 @@ function init( )
 	}
 
 	onResize( );
-
+	
+	
+	// back panel
+	var back1 = new THREE.Mesh(
+		new THREE.PlaneGeometry( 1, 20 ).translate(0.5,0,0),
+		new THREE.MeshBasicMaterial({color:'linen'})
+	);
+	back1.scale.x = 104;
+	back1.position.set( -1, 10, -1 );
+	scene.add( back1 );
+	
 } // init
 
 
@@ -88,6 +99,7 @@ function animationLoop( /*t*/ ) {
 
 
 
+/* ***********************************
 // shift graphically a range of nodes
 
 function moveNodes( nodeName1, nodeName2, n, parentName=null, grandparentName=null )
@@ -123,47 +135,20 @@ function moveNodes( nodeName1, nodeName2, n, parentName=null, grandparentName=nu
 } // moveNodes
 
 
+************************************************ */
 
-// shift graphically a range of nodes and their subtrees
 
-function moveNodesRecursive( nodeName1, nodeName2, n, parentName=null, grandparentName=null )
+
+// shift graphically a node and its subtrees
+
+function moveNodeSub( node, dx, levels = 1e5 )
 {
-	var node1 = findNode( nodeName1, parentName, grandparentName );
-	if( node1==null ) return;
-
-	var node2 = findNode( nodeName2, parentName, grandparentName );
-	if( node2==null ) return;
-
-	if( node1.y!=node2.y )
+	if( levels>0 )
 	{
-		console.error(`Nodes ${nodeName1} and ${nodeName2} are at different levels` );
-		return;
+		node.x += dx;
+		for( var child of node.children) moveNodeSub(child,dx,levels-1);
 	}
-	
-	var i1 = levels[node1.y].indexOf( node1 );
-	if( i1<0 )
-	{
-		console.error(`Node ${nodeName1} is not found in its parent's children` );
-		return;
-	}
-
-	var i2 = levels[node2.y].indexOf( node2 );
-	if( i2<0 )
-	{
-		console.error(`Node ${nodeName2} is not found in its parent's children` );
-		return;
-	}
-	
-	function move(node,n)
-	{
-		node.x += n;
-		for( var c of node.children) move(c,n);
-	}
-	
-	for( var i=i1; i<=i2; i++ )
-		move(levels[node1.y][i],n);
-} // moveNodesRecursive
-
+} // moveNode
 
 
 
@@ -282,25 +267,32 @@ function centerParents( node )
 centerParents( rootClass );
 
 
+// move node to match its parent (while the only child)
+function parentizeNode( idx )
+{
+	var node = nodes[idx];
+	while( node.parent.children.length == 1 )
+	{
+		moveNodeSub( node, node.parent.x-node.x );
+		node = node.parent;
+	}
+}
+
+function moveNode( idx, dx, levels=1 )
+{
+	moveNodeSub(nodes[idx],dx,levels);
+}
+
+
 // reposition nodes (keeping the same order)
 function repositionNodes()
 {
-	moveNodes( 'transpiler', 'transpiler', 1.5, 'addons', '%Three.js%'	);
-	moveNodes( 'common', 'common', 0.75, 'renderers' );
-	moveNodes( 'Material', 'Material', 1.75 );
-	moveNodesRecursive( 'NodeMaterial', 'NodeMaterial', -0.5 );
-	moveNodes( 'NodeMaterial', 'NodeMaterial', 0.5 );
-	moveNodes( 'Line', 'Line', 1.25 );
-	moveNodes( 'Mesh', 'Mesh', 1 );
-	moveNodes( 'InstancedMesh', 'BatchedMesh', 1.5 );
-	moveNodes( 'EventDispatcher', 'EventDispatcher', -0.25 );
-	moveNodes( 'core', 'core', -4.5, 'src' );
-	// moveNodesRecursive( 'ShapePath', 'Curve', true, -2 );
-	// moveNodes( 'EffectComposer', 'EffectComposer', false, 2 );
-	// moveNodes( 'postprocessing', 'postprocessing', false, 1 );
-	// moveNodesRecursive( 'renderers', 'renderers', true, -2 );
-	// moveNodesRecursive( 'MeshStandardMaterial', 'LineBasicMaterial', true, -6 );
-	// moveNodesRecursive( 'core', 'core', true, -2, '' );
+	parentizeNode( 900 );
+	moveNode( 162, 1 );
+	moveNode( 136, 7, 2 );
+	moveNode( 159, 7 );
+	moveNode( 136, 1 );
+	
 } // repositionNodes
 
 repositionNodes();
@@ -319,24 +311,6 @@ function calcSpan( node )
 }
 
 calcSpan( rootClass/*.children[0]*/ );
-
-
-/*
-function toPolar( node )
-{
-	VSCALE = 1;
-	
-	var r = 10*node.y;
-	var a = THREE.MathUtils.mapLinear(node.x,minX,maxX+1,0,2*Math.PI);
-	node.x = r*Math.cos( a );
-	node.y = r*Math.sin( a );
-	for( var i=0; i<node.children.length; i++ )
-		toPolar( node.children[i] );
-
-}
-toPolar( rootClass );
-*/
-
 
 
 // materials and geometries for the tree branches
@@ -373,7 +347,7 @@ function generateBubbleShape(R,r,H,h)
 
 
 var R = 0.4;
-var r = 0.08;
+var r = 0.06//8;
 var H = 0.7;
 var h = VSCALE/2-H-2*r;
 
@@ -537,7 +511,68 @@ function defineMeshes( )
 defineMeshes();
 
 
+function selectNode( i )
+{
+	console.log( `selected index ${i}` );
+	selectedNode = nodes[i];
+	console.log( `selected node[${i}]`, selectedNode.name, selectedNode.x, selectedNode.y*VSCALE );
+}
 
+window.selectNode = selectNode;
+
+
+
+	
+
+/*	
+	var v1 = new THREE.Vector3();
+	var v2 = new THREE.Vector3();
+	var v3 = new THREE.Vector3();
+	var v4 = new THREE.Vector3();
+	var v5 = new THREE.Vector3();
+	var v6 = new THREE.Vector3();
+	
+	var dR = 2*r;
+
+		for( var child of node.children )
+		{
+			// draw curve between parent and child
+			var sign = Math.sign(child.image.position.x - node.image.position.x );
+			
+			v1.copy( node.image.position );
+			v1.y += VSCALE/2-dR;
+			
+			v2.copy( v1 );
+			v2.y += dR;
+			
+			v3.copy( v2 );
+			v3.x += dR*sign;
+			
+			v6.copy( child.image.position );
+			v6.y -= VSCALE/2-dR;
+			
+			v5.copy( v6 );
+			v5.y -= dR;
+			
+			v4.copy( v5 );
+			v4.x -= dR*sign;
+			
+			var points = [
+					node.image.position,
+					...new THREE.QuadraticBezierCurve3( v1, v2, v3 ).getPoints( 10 ),
+					...new THREE.QuadraticBezierCurve3( v4, v5, v6 ).getPoints( 10 ),
+					child.image.position,
+				];
+
+			var geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+			var material = new THREE.LineBasicMaterial( { color: 'red' } );
+
+			scene.add( new THREE.Line( geometry, material ) );
+		}
+		*/
+		
+	
 
 function drawLevels( node, size=2 )
 {
@@ -731,6 +766,8 @@ function drawLevels( node, size=2 )
 		if( !node.hasDocs && !node.isZone ) labelDiv.classList.add( 'noDocs' );
 		//labelDiv.innerHTML = (node.isZone/*||node.isZoneJS*/)?'('+node.name+')':node.name;
 		labelDiv.innerHTML = node.wrappedName;
+		labelDiv.setAttribute('onpointerdown', `selectNode(${node.idx})`);
+		
 		//labelDiv.textContent = (node.isZone||node.isZoneJS||node.isZoneFake)?'('+node.children.length+')':node.children.length;
 	
 		var label = new CSS3DObject( labelDiv );
@@ -758,7 +795,6 @@ function drawLevels( node, size=2 )
 drawLevels( rootClass );
 
 
-
 scene.add( new THREE.LineSegments(
 				new THREE.BufferGeometry().setFromPoints( points[false] ), 
 				new THREE.LineBasicMaterial({color:'steelblue'})
@@ -771,6 +807,24 @@ scene.add( new THREE.LineSegments(
 
 //console.table( classes )
 //console.table( levels )
+
+
+
+function swapLeft( )
+{
+	console.log('swap left',selectedNode.name);
+}
+
+window.swapLeft = swapLeft;
+
+
+function swapRight( )
+{
+	console.log('swap right',selectedNode.name);
+}
+
+window.swapRight = swapRight;
+
 
 
 var stats = {classes:0, zones:0/*, zonesJS:0, zonesFake:0*/};
@@ -798,4 +852,4 @@ console.groupEnd( 'Final classes' );
 
 //console.log( rootClass )
 
-console.log('Span',maxX-minX,' <- 344');
+console.log('Span',maxX-minX,' <- 463');

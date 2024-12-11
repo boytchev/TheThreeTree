@@ -74,7 +74,7 @@ function processFolder( data, isCore )
 
 console.groupCollapsed( 'Classes warnings' );
 processFolder( DATA_SRC, true );
-processFolder( DATA_ADDONS, false );
+if( INCLUDE_ADDONS ) processFolder( DATA_ADDONS, false );
 classes.sort( sorter );
 
 
@@ -126,7 +126,7 @@ function processDocs( data, isCore )
 
 
 processDocs( DOCS_SRC, true );
-processDocs( DOCS_ADDONS, false );
+if( INCLUDE_ADDONS ) processDocs( DOCS_ADDONS, false );
 
 
 

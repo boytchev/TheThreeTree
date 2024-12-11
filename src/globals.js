@@ -184,9 +184,11 @@ class RootClass extends Class {
 
 
 
+var zoneId = 0;
+
 // definition of a TTT zone pseudo-class
 class ZoneClass extends Class {
-	constructor ( name )
+	constructor ( name = '$'+(zoneId++) )
 	{
 		super( name );
 		this.isZone = true;
