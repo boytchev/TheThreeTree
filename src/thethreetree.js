@@ -11,9 +11,24 @@ import {/*classes, */rootClass, nodes/*, findNode*/} from "./hierarchy.js";
 var renderer, cssRenderer, scene, camera, light, controls;
 
 var VSCALE = 2;
-var CAMERA_POS = new THREE.Vector3( 222, 10, 10 );
+var CAMERA_POS = new THREE.Vector3( 142, 10, 15 );
 
 var selectedNode;
+
+var clock = new THREE.Clock();
+var leftTime = 0;
+
+function startLoop( )
+{
+	clock.getDelta();
+	leftTime = 1;
+	renderer.setAnimationLoop( animationLoop );
+}
+
+function endLoop( )
+{
+	renderer.setAnimationLoop( null );
+}
 
 function init( )
 {
@@ -23,7 +38,6 @@ function init( )
 	renderer.setSize( innerWidth, innerHeight );
 	renderer.domElement.style.position = 'absolute';
 	renderer.domElement.style.top = '0px';
-//	renderer.setAnimationLoop( animationLoop );
 	document.body.appendChild( renderer.domElement );
 
 	cssRenderer = new CSS3DRenderer();
@@ -48,14 +62,15 @@ function init( )
 	scene.add( ambientLight );
 
 	controls = new OrbitControls( camera, cssRenderer.domElement );
-	//controls.enableDamping = true;*
+	controls.enableDamping = true;
+	controls.dampingFactor = 0.1;
 	controls.enableRotate = false;
 	controls.target.set( CAMERA_POS.x, CAMERA_POS.y, 0 );
-	controls.addEventListener( 'change', animationLoop );
+	controls.addEventListener( 'change', startLoop );
 	controls.zoomSpeed = 40;
 	controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
 
-
+	
 	// manage window resizes
 
 	window.addEventListener( "resize", onResize );
@@ -69,11 +84,12 @@ function init( )
 		renderer.setSize( innerWidth, innerHeight );
 		cssRenderer.setSize( innerWidth, innerHeight );
 
+		startLoop( );
 	}
 
 	onResize( );
 	
-	
+	/*
 	// back panel
 	var back1 = new THREE.Mesh(
 		new THREE.PlaneGeometry( 1, 20 ).translate(0.5,0,0),
@@ -82,7 +98,8 @@ function init( )
 	back1.scale.x = 104;
 	back1.position.set( -1, 10, -1 );
 	scene.add( back1 );
-	
+*/
+	startLoop( );
 } // init
 
 
@@ -91,7 +108,10 @@ init( );
 
 function animationLoop( /*t*/ ) {
 
-//	controls.update( );
+	leftTime -= clock.getDelta();
+	if( leftTime<0 ) endLoop( );
+	
+	controls.update( );
 	renderer.render( scene, camera );
 	cssRenderer.render( scene, camera );
 
@@ -141,12 +161,12 @@ function moveNodes( nodeName1, nodeName2, n, parentName=null, grandparentName=nu
 
 // shift graphically a node and its subtrees
 
-function moveNodeSub( node, dx, levels = 1e5 )
+function moveNodeSub( node, dx, levels = 1e5, skips=0 )
 {
 	if( levels>0 )
 	{
-		node.x += dx;
-		for( var child of node.children) moveNodeSub(child,dx,levels-1);
+		if( skips<1 ) node.x += dx;
+		for( var child of node.children) moveNodeSub(child,dx,levels-1,skips-1);
 	}
 } // moveNode
 
@@ -208,7 +228,7 @@ function expandTree( node )
 			if( subnode.x >= min )
 				subnode.x += dx;
 	}
-	
+		
 	for( var i=0; i<node.children.length; i++ )
 		expandTree(node.children[i]);
 } // expandTree
@@ -278,20 +298,103 @@ function parentizeNode( idx )
 	}
 }
 
-function moveNode( idx, dx, levels=1 )
+function moveNode( idx, dx, levels=1, skips=0 )
 {
-	moveNodeSub(nodes[idx],dx,levels);
+	moveNodeSub(nodes[idx],dx,levels,skips);
 }
 
+
+function doneNode( idx )
+{
+	/* used only for debug purposes
+	function helper( node )
+	{
+		if( !node.isZone ) node.selected = true;
+		for( var child of node.children ) helper(child);
+	}
+	helper( nodes[idx] );
+	*/
+}
+
+function spreadNodes( idx, n )
+{
+	var node = nodes[idx];
+	var from = node.parent.children.indexOf( node );
+	var to = from+n;
+	for( var i=from+1; i<to; i++ )
+		node.parent.children[i].x = THREE.MathUtils.mapLinear( i, to, from, node.parent.children[to].x, node.parent.children[from].x );
+}
 
 // reposition nodes (keeping the same order)
 function repositionNodes()
 {
-	parentizeNode( 900 );
-	moveNode( 162, 1 );
-	moveNode( 136, 7, 2 );
-	moveNode( 159, 7 );
-	moveNode( 136, 1 );
+	parentizeNode( 317 );
+	parentizeNode( 1 );
+	parentizeNode( 810 );
+	
+	// Pass
+	moveNode( 94, 1, 10, 1 );
+	
+	// branch Nodes
+	moveNode( 346, -1, 10, 1 );
+	moveNode( 362, 0.5, 1 );
+	moveNode( 409, 1, 1 );
+	doneNode( 317 );
+	
+	// branch addons
+	moveNode( 49, -1.25, 1 );
+	moveNode( 64, -0.5, 1 );
+	moveNode( 76, 0.5, 1 );
+	moveNode( 1, -6.5, 10, 1 );
+	doneNode( 1 );
+	
+	// branch object3D
+	moveNode( 569, 7, 1 );
+	doneNode( 469 );
+	
+	// BufferGeometry
+	moveNode( 247, -1, 10, 1 );
+	doneNode( 213 );
+	
+	// animation
+	moveNode( 177, 0.5, 1, 0 );
+	doneNode( 177 );
+	
+	// branch Material, Controls, BufferAttributs
+	doneNode( 271 );
+	doneNode( 260 );
+	doneNode( 196 );
+	
+	// EventDispatcher
+	moveNode( 211, 11.75, 1, 0 );
+	moveNode( 195, 10.5, 1, 0 );
+	doneNode( 195 );
+	
+	// src/extras
+	moveNode( 642, -0.5, 1, 0 );
+	doneNode( 642 );
+	
+	// src/loaders
+	moveNode( 754, 7, 2, 0 );
+	moveNode( 684, 1.5, 2, 0 );
+	moveNode( 752, -3, 1, 0 );
+	moveNode( 753, 3, 1, 0 );
+	doneNode( 684 );
+	
+	// src/math
+	moveNode( 763, 3, 1, 0 );
+	moveNode( 757, 3, 1, 0 );
+	doneNode( 756 );
+	
+	// src/nodes/core
+	doneNode( 783 );
+	moveNode( 763, 3, 1, 0 );
+
+	// src/renderers
+	moveNode( 812, 11, 1, 0 );
+	moveNode( 811, 13, 1, 0 );
+	moveNode( 976, -12.25, 100, 0 );
+	moveNode( 976, -2.25, 100, 1 );
 	
 } // repositionNodes
 
@@ -346,10 +449,11 @@ function generateBubbleShape(R,r,H,h)
 }
 
 
-var R = 0.4;
-var r = 0.06//8;
+var R = 0.4; // size of bubbles
+var r = 0.06; // width of lines
 var H = 0.7;
-var h = VSCALE/2-H-2*r;
+var C = 0.25; // curved corner radius
+var h = VSCALE/2-H-C;
 
 function defineMeshes( )
 {
@@ -411,7 +515,8 @@ function defineMeshes( )
 	
 	// connector
 	
-	var connector = new THREE.RingGeometry( 1*r, 3*r, 16, 1, Math.PI, Math.PI/2).translate(2*r,-H-h,0);
+	//var connector = new THREE.RingGeometry( 1*r, 3*r, 16, 1, Math.PI, Math.PI/2).translate(2*r,-H-h,0);
+	var connector = new THREE.RingGeometry( C-r, C+r, 16, 1, Math.PI, Math.PI/2).translate(C,-VSCALE/2+C,0);
 
 	meshes.connectorCore = new THREE.Mesh(
 		connector,
@@ -424,7 +529,7 @@ function defineMeshes( )
 	);
 
 	
-	var straight = new THREE.PlaneGeometry( 2*r, 2*r).translate(0,-H-h-r,0);
+	var straight = new THREE.PlaneGeometry( 2*r, 2*C).translate(0,-H-h-r,0);
 
 	meshes.straightCore = new THREE.Mesh(
 		straight,
@@ -437,7 +542,7 @@ function defineMeshes( )
 	);
 
 	
-	var long2 = new THREE.PlaneGeometry( 2*r, 4*r).translate(0,-H-h-2*r,0);
+	var long2 = new THREE.PlaneGeometry( 2*r, 2*C).translate(0,-H-h-C,0);
 
 	meshes.longCore = new THREE.Mesh(
 		long2,
@@ -450,7 +555,7 @@ function defineMeshes( )
 	);
 
 	
-	var horizontal = new THREE.PlaneGeometry( 1, 2*r).translate(0,H+h+2*r,0);
+	var horizontal = new THREE.PlaneGeometry( 1, 2*r).translate(0,H+h+C,0);
 
 	meshes.horizontalCore = new THREE.Mesh(
 		horizontal,
@@ -463,7 +568,7 @@ function defineMeshes( )
 	);
 
 	
-	var vertical = new THREE.PlaneGeometry( 2*r, VSCALE);//.translate(0,-VSCALE/2,0);
+	var vertical = new THREE.PlaneGeometry( C, VSCALE);//.translate(0,-VSCALE/2,0);
 
 	meshes.verticalCore = new THREE.Mesh(
 		vertical,
@@ -476,7 +581,7 @@ function defineMeshes( )
 	);
 
 	
-	var verticalZone = new THREE.PlaneGeometry( 2*r, VSCALE-4*r);//.translate(0,-VSCALE/2,0);
+	var verticalZone = new THREE.PlaneGeometry( 2*r, VSCALE-2*C);//.translate(0,-VSCALE/2,0);
 
 	meshes.verticalZoneCore = new THREE.Mesh(
 		verticalZone,
@@ -489,7 +594,7 @@ function defineMeshes( )
 	);
 
 	
-	verticalZone = new THREE.PlaneGeometry( 2*r, VSCALE-4*r);//.translate(0,-VSCALE/2,0);
+	verticalZone = new THREE.PlaneGeometry( 2*r, VSCALE-2*C);//.translate(0,-VSCALE/2,0);
 
 	pos = verticalZone.getAttribute( 'position' );
 	col = new THREE.Float32BufferAttribute( 3*pos.count, 3 );
@@ -659,13 +764,13 @@ function drawLevels( node, size=2 )
 			if( min < node.x )
 			{
 				mesh2 = meshes.horizontalCore.clone();
-				mesh2.scale.x = node.x-min-4*r;
+				mesh2.scale.x = node.x-min-2*C;
 				mesh2.position.x = -(node.x-min)/2;
 			}
 			if( max > node.x )
 			{
 				mesh3 = meshes.horizontalCore.clone();
-				mesh3.scale.x = max-node.x-4*r;
+				mesh3.scale.x = max-node.x-2*C;
 				mesh3.position.x = (max-node.x)/2;
 			}
 		}
@@ -674,13 +779,13 @@ function drawLevels( node, size=2 )
 			if( min < node.x )
 			{
 				mesh2 = meshes.horizontalAddon.clone();
-				mesh2.scale.x = node.x-min-4*r;
+				mesh2.scale.x = node.x-min-2*C;
 				mesh2.position.x = -(node.x-min)/2;
 			}
 			if( max > node.x )
 			{
 				mesh3 = meshes.horizontalAddon.clone();
-				mesh3.scale.x = max-node.x-4*r;
+				mesh3.scale.x = max-node.x-2*C;
 				mesh3.position.x = (max-node.x)/2;
 			}
 		}
@@ -763,13 +868,15 @@ function drawLevels( node, size=2 )
 		var labelDiv = document.createElement( 'div' );
 		labelDiv.className = node.isCore?'labelCore':'labelAddon';
 		if( node.isZone ) labelDiv.classList.add( 'zone' );
+		if( node.selected ) labelDiv.classList.add( 'selected' );
 		if( !node.hasDocs && !node.isZone ) labelDiv.classList.add( 'noDocs' );
 		//labelDiv.innerHTML = (node.isZone/*||node.isZoneJS*/)?'('+node.name+')':node.name;
 		labelDiv.innerHTML = node.wrappedName;
 		labelDiv.setAttribute('onpointerdown', `selectNode(${node.idx})`);
 		
 		//labelDiv.textContent = (node.isZone||node.isZoneJS||node.isZoneFake)?'('+node.children.length+')':node.children.length;
-	
+		node.labelDiv = labelDiv;
+		
 		var label = new CSS3DObject( labelDiv );
 		label.position.set( node.x, VSCALE*node.y, 0 );
 		label.scale.setScalar( 0.007 );
@@ -779,6 +886,22 @@ function drawLevels( node, size=2 )
 			label.position.y += 0.2*VSCALE;
 		}
 		scene.add( label );
+		
+		if(node.name=='addons')console.log(node.idx)
+		
+		// big label
+		if( ['Object3D', 'Mesh', 'Material', 'Loader', 'Node', 'BufferGeometry', '%Three.js%', 'Line', 'Light', 'Pass', 'exporters', 'Points'].indexOf(node.name)>-1 )
+		{
+			var bigLabelDiv = document.createElement( 'div' );
+			bigLabelDiv.className = node.isCore?'bigLabelCore':'bigLabelAddon';
+			bigLabelDiv.innerHTML = node.name;
+			//node.labelDiv = labelDiv;
+			
+			var bigLabel = new CSS3DObject( bigLabelDiv );
+			bigLabel.position.set( node.x+(node.isZone?2.25:2.5), VSCALE*node.y, 0 );
+			bigLabel.scale.setScalar( 0.04 );
+			scene.add( bigLabel );
+		}
 	}
 				
 	size = 0.8*size+0.2;

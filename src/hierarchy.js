@@ -148,7 +148,24 @@ function compactZones( node )
 }
 
 
+// flatten src branch (i.e. make its children direct children of the root)
+function flattenSrc( )
+{
+	// find src
+	for( var src of rootClass.children )
+	{
+		if( !src.isCore ) continue;
+		if( src.name != 'src' ) continue;
 
+		rootClass.children = rootClass.children.filter( e => e!=src );
+		
+		for( var child of src.children )
+		{
+			child.name = `${src.name} / ${child.name}`;
+			child.setParent( rootClass );
+		}
+	}
+}
 
 
 // check whether the number of classes is the same
@@ -165,6 +182,7 @@ function calculateCount( node )
 
 addZones( rootClass );
 compactZones( rootClass );
+flattenSrc( );
 
 
 
@@ -376,126 +394,89 @@ function rangeNode( node1, node2 )
 }
 
 
-// manual adjust of the tree hierarchy
+// if there are too many successive children-leaves, flower them vertically
+function flowerNodes( node )
+{
+	function cut( length )
+	{
+		if( length<=4 ) return -1;
+		if( length<=6 ) return 1;
+		if( length<=8 ) return 2;
+		if( length<=12 ) return 3;
+		return 4;
+	}
+	
+	var k, child,
+		firstLeaf = null;
+		
+	for( var i=0; i<node.children.length; i++ )
+	{
+		child = node.children[i];
+		if( child.isLeaf && firstLeaf==null ) firstLeaf = i;
+		if( !child.isLeaf )
+		{
+			k = cut( i-firstLeaf );
+			
+			if( firstLeaf!=null && k>=0 )
+				rangeNode( node.children[firstLeaf+k].idx, node.children[i-1-k].idx );
+			firstLeaf = null;
+		}
+	}
+	
+	k = cut( i-firstLeaf );
 
+	if( firstLeaf!=null && k>=0 )
+		rangeNode( node.children[firstLeaf+k].idx, node.children[i-1-k].idx );
+
+	// recurse
+	for( child of node.children ) flowerNodes( child );
+	
+}
+
+flowerNodes( rootClass )
+
+
+
+// manual adjust of the tree hierarchy
 function manualAdjust()
 {
-	if( INCLUDE_ADDONS )
-	{
-		
-		raiseNode( 1, 7 );
-		shiftNode( 169, -1 );
-		raiseNode( 169 );
-		shiftNode( 166, -1 );
-		rangeNode( 141, 154 );
-		shiftNode( 137, 1 );
-	}
-	else
-	{
-		liftNode( 98, 12 );
-		liftNode( 382, 8 );
-		liftNode( 465, 6 );
-		shiftNode( 75, -3 );
-		liftNode( 75, 5 );
-		shiftNode( 85, -2 );
-		//flowerNode( 75, 3, 1 );
-		shiftNode( 508, -5 );
-		shiftNode( 516, -21 );
-		shiftNode( 496, 5 );
-		shiftNode( 409, -5 );
-		shiftNode( 62, 5 );
-		shiftNode( 520, 4 );
-		shiftNode( 36, 6 );
-		shiftNode( 520, -7 );
-		shiftNode( 524, -3 );
-		
-		shiftNode( 273, 4 );
-		shiftNode( 127, -1 );
-		shiftNode( 145, 2 );
-		shiftNode( 123, 1 );
-		shiftNode( 162, -3 );
-		shiftNode( 114, 8 );
-		shiftNode( 117, 7 );
-		shiftNode( 113, 9 );
-		shiftNode( 116, 7 );
-		shiftNode( 152, -3 );
-		shiftNode( 204, 6 );
-		shiftNode( 188, -12 );
-		liftNode( 188, 1 );
-		flowerNode( 188, 6, 1 );
-		shiftNode( 118, 20 );
-		shiftNode( 176, -3 );
-		shiftNode( 177, -2 );
-		shiftNode( 178, -1 );
-		shiftNode( 181, -1 );
-		shiftNode( 167, -14 );
-		shiftNode( 170, -15 );
-		shiftNode( 109, 29 );
-		shiftNode( 101, 37 );
-		shiftNode( 99, 23 );
-		flowerNode( 98, 10, 1 );
-		
-		shiftNode( 382, 1 );
-		shiftNode( 323, -2 );
-		shiftNode( 275, 3 );
-		
-		flowerNode( 75, 4 );
-		flowerNode( 314, 2, 1 );
-		flowerNode( 273, 3, 1 );
-		
-		shiftNode( 363, 4 );
-		shiftNode( 358, -2 );
-		flowerNode( 355, 5, 1 );
-		shiftNode( 355, 3 );
-		shiftNode( 335, 1 );
-		shiftNode( 348, -11 );
-		shiftNode( 345, -10 );
-		shiftNode( 347, -9 );
-//		flowerNode( 335, 4 );
-		
-		liftNode( 349, 8 );
-		liftNode( 347, 9 );
-		liftNode( 346, 8 );
-		
-		shiftNode( 309, 2 );
-		shiftNode( 334, -4 );
-		shiftNode( 273, -4 );
-		flowerNode( 335, 3, 1 );
-		flowerNode( 559, 2, 1 );
-		shiftNode( 559, 2 );
-		
-		shiftNode( 72, -1 );
-		shiftNode( 63, 7 );
-		shiftNode( 94, -3 );
-		flowerNode( 62, 4, 1 );
-		shiftNode( 266, 1 );
-		
-		shiftNode( 256, 4 );
-		shiftNode( 262, -1 );
-		shiftNode( 243, -3 );
-		shiftNode( 220, 10 );
-		shiftNode( 224, 7 );
-		shiftNode( 230, 5 );
-		shiftNode( 223, 3 );
-		shiftNode( 221, 3 );
-		
-		shiftNode( 406, -5 );
-		shiftNode( 383, 4 );
-		shiftNode( 309, -3 );
-		shiftNode( 417, -4 );
-		shiftNode( 432, -1 );
-		shiftNode( 413, -1 );
-		shiftNode( 294, 1 );
-		liftNode( 296, 8 );
-		liftNode( 298, 8 );
-		liftNode( 300, 8 );
-		liftNode( 302, 8 );
-		liftNode( 304, 8 );
-		liftNode( 306, 8 );
-		liftNode( 308, 8 );
-	}
+	liftNode( 317, 6 ); // nodes
+//	liftNode( 409, 1 ); // TempNode
+	
+	shiftNode( 1, 4 ); // addons
+	liftNode( 1, 8 ); // addons
+	
+	liftNode( 94, 1 ); // Pass
+	raiseNode( 810, 2 );
+	
+	// decorations
+	
+	// branch Node
+	shiftNode( 328, -1 );
+	shiftNode( 346, -1 );
+	shiftNode( 364, 2 );
+	
+	// branch addons
+	shiftNode( 85, 1 );
+	shiftNode( 93, 1 );
+	shiftNode( 119, 2 );
+	shiftNode( 114, 2 );
+	shiftNode( 98, 1 );
+	
+	// buffergeometry
+	shiftNode( 221, -1 );
+	shiftNode( 247, -3 );
+	
+	// src/loaders
+	shiftNode( 685, 1 );
+	shiftNode( 695, 1 );
+	
+	// src/math
+	shiftNode( 764, 3 );
+	shiftNode( 954, 1 );
+	
 } // manualAdjust
-
+ 
 manualAdjust();
 
 

@@ -21,35 +21,43 @@
 		body {
 			overflow: hidden;
 			margin: 0;
-			font-family: Cordana, Calibri, sans-serif;
+			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
 		}
 
-		.header {
+		.holder {
 			position: absolute;
 			z-index: 1;
 			text-align: center;
-			left: 0;
 			margin: 0;
 			width: 100%;
-			background: rgba( 250, 250, 255, 0.7 );
+		}
+		
+		.header {
+			display: inline-block;
+			text-align: center;
+			background-color: rgb(255,250,255,75%);
 			backdrop-filter: blur(0.1em);
+			border: dotted 1px lightgray;
+			border-top: none;
+			border-radius: 0 0 2em 2em;
+			padding: 0 2em;
 		}
 		
 		h1, h2 {
 			font-variant: small-caps;
-			margin: 0.5em auto 0 auto;
+			margin: 0.25em auto 0 auto;
 		}
 		
 		h2 {
 			color: SteelBlue;
-			margin: 0 auto 0.5em auto;
+			margin: 0 auto 0.1em auto;
 			font-variant: small-caps;
 			font-weight: normal;
 		}
 
 		.labelCore {
 			text-align: center;
-			font-family: sans-serif;
+			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
 
 			width: 6em;
 			height: 6em;
@@ -59,26 +67,20 @@
 			display: grid;
 			align-items: center;
 		}
-/*
-		.labelCore {
-			text-align: center;
-			font-family: sans-serif;
+		.bigLabelCore {
+			text-align: left;
+			color: black;
+			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
+			font-weight: bold;
 
 			width: 6em;
-			height: 6em;
-			background: white;
-			border-radius: 6em;
-			border: solid 0.2em black;
-			
-			display: grid;
-			align-items: center;
+			height: 1em;
 		}
-*/		
 
 		.labelAddon {
 			text-align: center;
 			color: steelblue;
-			font-family: sans-serif;
+			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
 
 			width: 6em;
 			height: 6em;
@@ -89,25 +91,15 @@
 			align-items: center;
 		}
 
-/*
-		.labelAddon {
-			text-align: center;
+		.bigLabelAddon {
+			text-align: left;
 			color: steelblue;
-			font-family: sans-serif;
+			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
+			font-weight: bold;
 
 			width: 6em;
-			height: 6em;
-			background: white;
-			border-radius: 6em;
-			border: solid 0.2em steelblue;
-			
-			display: grid;
-			align-items: center;
+			height: 1em;
 		}
-
-		.labelCore:hover{background:yellow}
-		.labelAddon:hover{background:yellow}
-*/		
 
 		.zone {
 			text-align: left;
@@ -115,21 +107,12 @@
 			border-radius: 0;
 			height: 1em;
 			width: 20em;
-			font-family: sans-serif;
+			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
 			background: none;
 			#border-radius: 4em;
 			#padding: 0.5em 0.5em;
 		}
-/*		
-		.zone {
-			text-align: left;
-			color: gray;
-			height: 1em;
-			width: 20em;
-			font-family: sans-serif;
-			background: none;
-		}
-*/
+
 		.labelCore.zone {
 			#background: black;
 		}
@@ -138,8 +121,22 @@
 			#background: steelblue;
 		}
 		
-		.noDocs {
-			border: solid 0.2em crimson;
+		.labelCore.noDocs {
+			border: solid 0.25em crimson;
+		}
+		
+		.labelAddon.noDocs {
+			border: solid 0.25em deeppink;
+		}
+		
+		.selected {
+			background: orange;
+		}
+		
+		.subline {
+			font-size: 60%;
+			font-weight: 100;
+			color: gray;
 		}
 	</style>
 	<script>
@@ -149,9 +146,12 @@
 </head>
 
 <body>
+	<div class="holder">
 	<div class="header">
 		<h1>The Three of Three.js</h1>	
 		<h2>and its addons</h2>	
+		<div class="subline" id="info">release 0.171.0</div>
+	</div>
 	</div>
 </body>
 </html>

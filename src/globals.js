@@ -70,6 +70,11 @@ class Class {
 		this.parent = parent;
 	}
 	
+	get isLeaf( )
+	{
+		return this.children.length <= 1;
+	}
+	
 	get wrappedName()
 	{
 		function lower(x) { return ('a'<=x && x<='z')}
@@ -203,7 +208,7 @@ class ZoneClass extends Class {
 	
 	get wrappedName()
 	{
-		return this.name;
+		return this.name[0]=='$' ? '&nbsp;&nbsp;&nbsp;' : this.name;
 	}
 }
 
