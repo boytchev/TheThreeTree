@@ -629,7 +629,6 @@ defineMeshes();
 
 function clickNode( i )
 {
-	selectedNode = nodes[i];
 	console.log( `clicked node[${i}]=${nodes[i].name} at (${nodes[i].x},${nodes[i].y*VSCALE}` );
 }
 

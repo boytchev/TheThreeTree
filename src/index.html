@@ -43,15 +43,28 @@
 			padding: 0 2em;
 		}
 		
+		.header:hover {
+			background-color: rgb(200,200,200,75%);
+		}
+		
+		a {
+			text-decoration: none; 
+		}
+		
 		h1, h2 {
-			font-variant: small-caps;
+			text-transform: uppercase;
 			margin: 0.25em auto 0 auto;
 		}
 		
+		h1 {
+			font-size: 150%;
+			color: Black;
+		}
+		
 		h2 {
+			font-size: 100%;
 			color: SteelBlue;
 			margin: 0 auto 0.1em auto;
-			font-variant: small-caps;
 			font-weight: normal;
 		}
 
@@ -140,6 +153,8 @@
 			font-weight: 100;
 			color: gray;
 		}
+		
+		
 	</style>
 
 	<script src="thethreetree.js" type="module"></script>
@@ -147,11 +162,11 @@
 
 <body>
 	<div class="holder">
-	<div class="header">
+	<a class="header" href="https://github.com/boytchev/TheThreeTree">
 		<h1>The Tree of Three.js</h1>	
 		<h2>and its addons</h2>	
-		<div class="subline" id="info">release 0.171.0</div>
-	</div>
+		<div class="subline" id="info">0.171.0</div>
+	</a>
 	</div>
 </body>
 </html>

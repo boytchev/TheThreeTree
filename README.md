@@ -1,12 +1,14 @@
-# TheThreeTree
+# The Tree of Three.js classes
 
-A tree-like visualization of Three.js classes.
+A tree-like visualization of Three.js classes and its addons. Click on the tree to view it live:
 
-Beware, this is a work-in-progress.
+[<img src="https://boytchev.github.io/TheThreeTree/images/all.png">](https://boytchev.github.io/TheThreeTree/src)
 
-[current state](https://boytchev.github.io/TheThreeTree/src)
 
-## How to use
+
+
+
+### How to use
 
 Use mouse or touch to pan the tree or zoom it in/out.
 
@@ -14,13 +16,22 @@ Add URL parameter `name=<string>` mark all classes with the
 given string in their names; or `name=<string>*` to also
 mark their child classes. String matching is case insensitive.
 
-Example:
 
+
+### Examples
+
+Show a close-up of the Three.js class root:
+[https://boytchev.github.io/TheThreeTree/src](https://boytchev.github.io/TheThreeTree/src)
+
+Show a close-up of the Material class and mark all other classes that has `material` in their names:
 [https://boytchev.github.io/TheThreeTree/src?name=material](https://boytchev.github.io/TheThreeTree/src?name=material)
 
-[https://boytchev.github.io/TheThreeTree/src?name=node*](https://boytchev.github.io/TheThreeTree/src?name=node)
+Mark all addons branches and show a close-up of the root of the largest one:
+[https://boytchev.github.io/TheThreeTree/src?name=addons*](https://boytchev.github.io/TheThreeTree/src?name=addons*)
 
-## Legend
+
+
+### Legend
 
 
 | Image | Description |
