@@ -47,9 +47,8 @@ Mark all `addons` branches and show a close-up of the root of the largest one:
 
 ### Disclamers
 
-<small>
 * This is a work in progress
 * No guarantee that all classes are corectly extracted
 * Performance issues when viewing from a mobile device
 * The tree alignment is neither the best, nor the cutest
-</small>
+
