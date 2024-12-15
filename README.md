@@ -39,7 +39,17 @@ Mark all `addons` branches and show a close-up of the root of the largest one:
 
 | Image | Description |
 | --- | --- |
-| <img src="https://boytchev.github.io/TheThreeTree/images/node-core.png" height="100"> <img src="https://boytchev.github.io/TheThreeTree/images/node-addon.png" height="100"> | A class from Three.js (black) or its addons (blue) |
-| <img src="https://boytchev.github.io/TheThreeTree/images/node-core-undocumented.png" height="100"> <img src="https://boytchev.github.io/TheThreeTree/images/node-addon-undocumented.png" height="100"> | A class without documentation in a dedicated webpage |
-| <img src="https://boytchev.github.io/TheThreeTree/images/node-important.png" height="100"> | An important or highly used class |
-| <img src="https://boytchev.github.io/TheThreeTree/images/node-folder-file.png" height="100"> | A folder or a Javascript file containing classes |
+| <img src="https://boytchev.github.io/TheThreeTree/images/node-core.png" height="80" style="border: solid 1px gray"> &nbsp; <img src="https://boytchev.github.io/TheThreeTree/images/node-addon.png" height="80" style="border: solid 1px gray"> | A class from Three.js (black) or its addons (blue) |
+| <img src="https://boytchev.github.io/TheThreeTree/images/node-core-undocumented.png" height="80" style="border: solid 1px gray"> &nbsp; <img src="https://boytchev.github.io/TheThreeTree/images/node-addon-undocumented.png" height="80" style="border: solid 1px gray"> | A class without documentation in a dedicated webpage |
+| <img src="https://boytchev.github.io/TheThreeTree/images/node-important.png" height="80" style="border: solid 1px gray"> | An important or highly used class |
+| <img src="https://boytchev.github.io/TheThreeTree/images/node-folder-file.png" height="80" style="border: solid 1px gray"> | A folder or a Javascript file containing classes |
+
+
+### Disclamers
+
+<small>
+* This is a work in progress
+* No guarantee that all classes are corectly extracted
+* Performance issues when viewing from a mobile device
+* The tree alignment is neither the best, nor the cutest
+</small>
