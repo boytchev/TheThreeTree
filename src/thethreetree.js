@@ -903,11 +903,13 @@ function drawLevels( node, size=2 )
 			var bigLabelDiv = document.createElement( 'div' );
 			bigLabelDiv.className = node.isCore?'bigLabelCore':'bigLabelAddon';
 			bigLabelDiv.innerHTML = node.name;
+			
 			//node.labelDiv = labelDiv;
 			
 			var bigLabel = new CSS3DObject( bigLabelDiv );
 			bigLabel.position.set( node.x+(node.isZone?2.25:2.5), VSCALE*node.y, 0 );
-			bigLabel.scale.setScalar( 0.04 );
+			bigLabel.scale.setScalar( 0.01 );
+			
 			scene.add( bigLabel );
 		}
 	}
