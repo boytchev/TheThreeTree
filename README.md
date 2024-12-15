@@ -23,7 +23,8 @@ Example:
 ## Legend
 
 
-|---|---|
+| Image | Description |
+| --- | --- |
 | <img src="https://boytchev.github.io/TheThreeTree/images/node-core.png" height="100"> <img src="https://boytchev.github.io/TheThreeTree/images/node-addon.png" height="100"> | A class from Three.js (black) or its addons (blue) |
 | <img src="https://boytchev.github.io/TheThreeTree/images/node-core-undocumented.png" height="100"> <img src="https://boytchev.github.io/TheThreeTree/images/node-addon-undocumented.png" height="100"> | A class without documentation in a dedicated webpage |
 | <img src="https://boytchev.github.io/TheThreeTree/images/node-important.png" height="100"> | An important or highly used class |
