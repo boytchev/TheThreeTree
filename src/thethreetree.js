@@ -5,6 +5,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
+import {Class} from "./globals.js";
 import {/*classes, */rootClass, nodes/*, findNode*/} from "./hierarchy.js";
 
 
@@ -354,6 +355,7 @@ function repositionNodes()
 	
 	// BufferGeometry
 	moveNode( 247, -1, 10, 1 );
+	moveNode( 213, -0.25, 1, 0 );
 	doneNode( 213 );
 	
 	// animation
@@ -361,13 +363,16 @@ function repositionNodes()
 	doneNode( 177 );
 	
 	// branch Material, Controls, BufferAttributs
+	moveNode( 196, 0.5, 1, 0 );
+	moveNode( 271, 1.5, 1, 0 );
 	doneNode( 271 );
 	doneNode( 260 );
 	doneNode( 196 );
 	
 	// EventDispatcher
-	moveNode( 211, 11.75, 1, 0 );
-	moveNode( 195, 10.5, 1, 0 );
+	moveNode( 469, 3, 1, 0 );
+	moveNode( 211, 14.75, 1, 0 );
+	moveNode( 195, 13.5, 1, 0 );
 	doneNode( 195 );
 	
 	// src/extras
@@ -395,6 +400,9 @@ function repositionNodes()
 	moveNode( 811, 13, 1, 0 );
 	moveNode( 976, -12.25, 100, 0 );
 	moveNode( 976, -2.25, 100, 1 );
+	
+	// root
+	moveNode( 0, -14.5, 1, 0 );
 	
 } // repositionNodes
 
@@ -887,10 +895,8 @@ function drawLevels( node, size=2 )
 		}
 		scene.add( label );
 		
-		if(node.name=='addons')console.log(node.idx)
-		
 		// big label
-		if( ['Object3D', 'Mesh', 'Material', 'Loader', 'Node', 'BufferGeometry', '%Three.js%', 'Line', 'Light', 'Pass', 'exporters', 'Points'].indexOf(node.name)>-1 )
+		if( ['Object3D', 'Mesh', 'Material', 'Loader', 'Node', 'BufferGeometry', Class.ROOT_NAME, 'Line', 'Light', 'Pass', 'exporters', 'Points'].indexOf(node.name)>-1 )
 		{
 			var bigLabelDiv = document.createElement( 'div' );
 			bigLabelDiv.className = node.isCore?'bigLabelCore':'bigLabelAddon';

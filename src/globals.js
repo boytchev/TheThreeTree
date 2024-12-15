@@ -41,7 +41,7 @@ function sorter(a,b) {
 // definition of a TTT class
 class Class {
 	
-	static ROOT_NAME = '%Three.js%';
+	static ROOT_NAME = 'Three.js';
 	
 	constructor ( name, fileName, parentName='', children=[], isCore=null )
 	{
