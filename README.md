@@ -21,12 +21,15 @@ mark their child classes. String matching is case insensitive.
 ### Examples
 
 Show a close-up of the Three.js class root:
+
 [https://boytchev.github.io/TheThreeTree/src](https://boytchev.github.io/TheThreeTree/src)
 
-Show a close-up of the Material class and mark all other classes that has `material` in their names:
+Show a close-up of the `Material` class and mark all other classes that has `material` in their names:
+
 [https://boytchev.github.io/TheThreeTree/src?name=material](https://boytchev.github.io/TheThreeTree/src?name=material)
 
-Mark all addons branches and show a close-up of the root of the largest one:
+Mark all `addons` branches and show a close-up of the root of the largest one:
+
 [https://boytchev.github.io/TheThreeTree/src?name=addons*](https://boytchev.github.io/TheThreeTree/src?name=addons*)
 
 
