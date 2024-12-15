@@ -14,8 +14,6 @@ var renderer, cssRenderer, scene, camera, light, controls;
 var VSCALE = 2;
 var CAMERA_POS = new THREE.Vector3( 142, 10, 15 );
 
-var selectedNode;
-
 var clock = new THREE.Clock();
 var leftTime = 0;
 
@@ -70,6 +68,8 @@ function init( )
 	controls.addEventListener( 'change', startLoop );
 	controls.zoomSpeed = 40;
 	controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+	controls.minDistance = 3;
+	controls.maxDistance = 100;
 
 	
 	// manage window resizes
@@ -305,18 +305,20 @@ function moveNode( idx, dx, levels=1, skips=0 )
 }
 
 
+// used only for debug purposes - marks a branch
+/*	
 function doneNode( idx )
 {
-	/* used only for debug purposes
 	function helper( node )
 	{
 		if( !node.isZone ) node.selected = true;
 		for( var child of node.children ) helper(child);
 	}
 	helper( nodes[idx] );
-	*/
 }
+*/
 
+/*
 function spreadNodes( idx, n )
 {
 	var node = nodes[idx];
@@ -325,6 +327,7 @@ function spreadNodes( idx, n )
 	for( var i=from+1; i<to; i++ )
 		node.parent.children[i].x = THREE.MathUtils.mapLinear( i, to, from, node.parent.children[to].x, node.parent.children[from].x );
 }
+*/
 
 // reposition nodes (keeping the same order)
 function repositionNodes()
@@ -340,59 +343,59 @@ function repositionNodes()
 	moveNode( 346, -1, 10, 1 );
 	moveNode( 362, 0.5, 1 );
 	moveNode( 409, 1, 1 );
-	doneNode( 317 );
+	//doneNode( 317 );
 	
 	// branch addons
 	moveNode( 49, -1.25, 1 );
 	moveNode( 64, -0.5, 1 );
 	moveNode( 76, 0.5, 1 );
 	moveNode( 1, -6.5, 10, 1 );
-	doneNode( 1 );
+	//doneNode( 1 );
 	
 	// branch object3D
 	moveNode( 569, 7, 1 );
-	doneNode( 469 );
+	//doneNode( 469 );
 	
 	// BufferGeometry
 	moveNode( 247, -1, 10, 1 );
 	moveNode( 213, -0.25, 1, 0 );
-	doneNode( 213 );
+	//doneNode( 213 );
 	
 	// animation
 	moveNode( 177, 0.5, 1, 0 );
-	doneNode( 177 );
+	//doneNode( 177 );
 	
 	// branch Material, Controls, BufferAttributs
 	moveNode( 196, 0.5, 1, 0 );
 	moveNode( 271, 1.5, 1, 0 );
-	doneNode( 271 );
-	doneNode( 260 );
-	doneNode( 196 );
+	//doneNode( 271 );
+	//doneNode( 260 );
+	//doneNode( 196 );
 	
 	// EventDispatcher
 	moveNode( 469, 3, 1, 0 );
 	moveNode( 211, 14.75, 1, 0 );
 	moveNode( 195, 13.5, 1, 0 );
-	doneNode( 195 );
+	//doneNode( 195 );
 	
 	// src/extras
 	moveNode( 642, -0.5, 1, 0 );
-	doneNode( 642 );
+	//doneNode( 642 );
 	
 	// src/loaders
 	moveNode( 754, 7, 2, 0 );
 	moveNode( 684, 1.5, 2, 0 );
 	moveNode( 752, -3, 1, 0 );
 	moveNode( 753, 3, 1, 0 );
-	doneNode( 684 );
+	//doneNode( 684 );
 	
 	// src/math
 	moveNode( 763, 3, 1, 0 );
 	moveNode( 757, 3, 1, 0 );
-	doneNode( 756 );
+	//doneNode( 756 );
 	
 	// src/nodes/core
-	doneNode( 783 );
+	//doneNode( 783 );
 	moveNode( 763, 3, 1, 0 );
 
 	// src/renderers
@@ -491,7 +494,7 @@ function defineMeshes( )
 	
 	var pos = bubble.getAttribute( 'position' );
 	var col = new THREE.Float32BufferAttribute( 3*pos.count, 3 );
-	for( var i=0; i<pos.count; i++ )
+	for( let i=0; i<pos.count; i++ )
 		if( pos.getY(i)>H+h/2 )
 			col.setXYZ(i,colors.core.r,colors.core.g,colors.core.b)
 		else
@@ -606,7 +609,7 @@ function defineMeshes( )
 
 	pos = verticalZone.getAttribute( 'position' );
 	col = new THREE.Float32BufferAttribute( 3*pos.count, 3 );
-	for( var i=0; i<pos.count; i++ )
+	for( let i=0; i<pos.count; i++ )
 		if( pos.getY(i)>0 )
 			col.setXYZ(i,colors.core.r,colors.core.g,colors.core.b)
 		else
@@ -624,14 +627,13 @@ function defineMeshes( )
 defineMeshes();
 
 
-function selectNode( i )
+function clickNode( i )
 {
-	console.log( `selected index ${i}` );
 	selectedNode = nodes[i];
-	console.log( `selected node[${i}]`, selectedNode.name, selectedNode.x, selectedNode.y*VSCALE );
+	console.log( `clicked node[${i}]=${nodes[i].name} at (${nodes[i].x},${nodes[i].y*VSCALE}` );
 }
 
-window.selectNode = selectNode;
+window.clickNode = clickNode;
 
 
 
@@ -880,7 +882,7 @@ function drawLevels( node, size=2 )
 		if( !node.hasDocs && !node.isZone ) labelDiv.classList.add( 'noDocs' );
 		//labelDiv.innerHTML = (node.isZone/*||node.isZoneJS*/)?'('+node.name+')':node.name;
 		labelDiv.innerHTML = node.wrappedName;
-		labelDiv.setAttribute('onpointerdown', `selectNode(${node.idx})`);
+		labelDiv.setAttribute('onpointerdown', `clickNode(${node.idx})`);
 		
 		//labelDiv.textContent = (node.isZone||node.isZoneJS||node.isZoneFake)?'('+node.children.length+')':node.children.length;
 		node.labelDiv = labelDiv;
@@ -939,23 +941,6 @@ scene.add( new THREE.LineSegments(
 
 
 
-function swapLeft( )
-{
-	console.log('swap left',selectedNode.name);
-}
-
-window.swapLeft = swapLeft;
-
-
-function swapRight( )
-{
-	console.log('swap right',selectedNode.name);
-}
-
-window.swapRight = swapRight;
-
-
-
 var stats = {classes:0, zones:0/*, zonesJS:0, zonesFake:0*/};
 function countStats( node )
 {
@@ -982,3 +967,49 @@ console.groupEnd( 'Final classes' );
 //console.log( rootClass )
 
 console.log('Span',maxX-minX,' <- 463');
+
+
+function selectNode( node, recursive )
+{
+	if( node.name[0]!='$' )
+		node.labelDiv?.classList.add( 'selected' );
+
+	if( recursive )
+		for( var child of node.children )
+			selectNode( child, recursive );
+}
+
+function processURLParams( )
+{
+	var params = new URLSearchParams( window.location.search );
+	if( params.has( 'name' ) )
+	{	// has name - try to find such node and focus on it
+		var name = params.get( 'name' ).toUpperCase();
+		var recursive = name.indexOf('*')>-1;
+		
+		name = name.replaceAll( '*', '' );
+
+		var list = nodes.filter( e => e.name.toUpperCase().indexOf(name)>=0 );
+		if( list.length>0 )
+		{
+			// put the largest node at the beginning
+			list.sort( (a,b) => b.weight-a.weight );
+
+			for( var node of list )
+				selectNode( node, recursive );
+			
+			camera.position.set( list[0].x, list[0].y*VSCALE+VSCALE/2, 5 );
+			controls.target.set( list[0].x, list[0].y*VSCALE+VSCALE/2, 0 );
+			controls.update();
+		}
+	}
+	else
+	{
+		// no name, use default view
+		camera.position.set( rootClass.x, rootClass.y*VSCALE+VSCALE*2, 15 );
+		controls.target.set( rootClass.x, rootClass.y*VSCALE+VSCALE*2, 0 );
+		controls.update();
+	}
+}
+
+processURLParams( );

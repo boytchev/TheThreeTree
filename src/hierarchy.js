@@ -227,7 +227,7 @@ function collectNodes( node )
 
 collectNodes( rootClass );
 
-for( var i in nodes ) nodes[i].idx = i;
+for( let i in nodes ) nodes[i].idx = i;
 
 /* ****************************************
 
@@ -260,7 +260,7 @@ function shiftNode( idx, n )
 	var i = node.parent.children.indexOf( node );
 	if( i<0 )
 	{
-		console.error(`Node ${nodeName} is not found in its parent's children` );
+		console.error(`Node ${node.name} is not found in its parent's children` );
 		return;
 	}
 	
@@ -309,52 +309,6 @@ function liftNode( idx, n=1 )
 		zone.idx = nodes.length;
 		nodes.push( zone );
 	}
-}
-
-
-// raise zone children vertically as a flower
-
-function flowerNode( idx, n=3, maxLevels=100 )
-{
-	var node = nodes[idx];
-	
-	flowerNodeHelper( node, n, maxLevels );
-}
-
-function flowerNodeHelper( node, n, maxLevels )
-{
-	if( maxLevels < 1 ) return;
-	
-	var k=0; // keep the first k and the last k on the same level
-	
-	if( node.children.length>2*n ) k = n;
-//	else
-//	if( node.children.length>5 ) k = 2;
-		
-	if( k > 0 )
-	{		
-		var	zone = new ZoneClass( );
-		zone.parent = node;
-		zone.isCore = node.isCore;
-		zone.idx = nodes.length;
-		nodes.push( zone );
-		
-		for( var i=k; i<node.children.length-k; i++ )
-		{
-			node.children[i].setParent( zone );
-		} // for
-		
-		// remove all ex-children that have moved to a new parent
-		//node.children = node.children.filter( e => e.parent==node );
-		// remove all ex-children that have moved to a new parent
-		node.children = node.children.filter( e => e.parent==node );
-		node.children.splice( k, 0, zone );
-		
-//		node.children.sort( sorter );
-	}
-	
-	// recursively process children
-	node.children.forEach( e => flowerNodeHelper(e, n, maxLevels-1) );
 }
 
 

@@ -74,7 +74,7 @@ function processFolder( data, isCore )
 
 console.groupCollapsed( 'Classes warnings' );
 processFolder( DATA_SRC, true );
-if( INCLUDE_ADDONS ) processFolder( DATA_ADDONS, false );
+processFolder( DATA_ADDONS, false );
 classes.sort( sorter );
 
 
@@ -95,8 +95,6 @@ console.groupEnd()
 function processDocs( data, isCore )
 {
 	data = data.split( '\n' );
-	
-	var result = [];
 	
 	data = data.map( row => {
 			if( row.indexOf('.html')>=0 )
@@ -126,7 +124,7 @@ function processDocs( data, isCore )
 
 
 processDocs( DOCS_SRC, true );
-if( INCLUDE_ADDONS ) processDocs( DOCS_ADDONS, false );
+processDocs( DOCS_ADDONS, false );
 
 
 
