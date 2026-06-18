@@ -6,9 +6,9 @@ Live: [https://boytchev.github.io/TheThreeTree/src](https://boytchev.github.io/T
 
 [<img src="https://boytchev.github.io/TheThreeTree/images/all.jpg">](https://boytchev.github.io/TheThreeTree/src)
 
-<a href="https://boytchev.github.io/TheThreeTree/src"><img src="https://boytchev.github.io/TheThreeTree/images/closeup-1.jpg.jpg" width="30%"></a>
-<a href="https://boytchev.github.io/TheThreeTree/src"><img src="https://boytchev.github.io/TheThreeTree/images/closeup-2.jpg.jpg" width="30%"></a>
-<a href="https://boytchev.github.io/TheThreeTree/src"><img src="https://boytchev.github.io/TheThreeTree/images/closeup-3.jpg.jpg" width="30%"></a>
+<a href="https://boytchev.github.io/TheThreeTree/src"><img src="https://boytchev.github.io/TheThreeTree/images/closeup-1.jpg" width="30%"></a>
+<a href="https://boytchev.github.io/TheThreeTree/src"><img src="https://boytchev.github.io/TheThreeTree/images/closeup-2.jpg" width="30%"></a>
+<a href="https://boytchev.github.io/TheThreeTree/src"><img src="https://boytchev.github.io/TheThreeTree/images/closeup-3.jpg" width="30%"></a>
 
 <!--
 ### How to use
