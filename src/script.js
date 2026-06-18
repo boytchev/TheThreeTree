@@ -33,6 +33,24 @@ const CIRCLE_PACKING = true; // supported
 const CHIMNEY_PACKING = !CIRCLE_PACKING; // not supported
 
 
+var urlParams = new URLSearchParams( document.location.search );
+var filterName = urlParams.get( 'show' );
+var cameraPos = urlParams.get( 'camera' );
+var targetPos = urlParams.get( 'target' );
+
+try {
+	if( cameraPos ) cameraPos = cameraPos.split(',').map( e => Number(e) );
+	if( targetPos ) targetPos = targetPos.split(',').map( e => Number(e) );
+	
+	if( cameraPos.length != 3 || isNaN(Math.max(...cameraPos)) ) cameraPos = null;
+	if( targetPos.length != 3 || isNaN(Math.max(...targetPos))  ) targetPos = null;
+	
+} catch {
+	cameraPos = null;
+	targetPos = null;
+}
+
+console.log(cameraPos,targetPos)
 
 /*
  * Scene setup
@@ -58,7 +76,11 @@ var scene = new THREE.Scene();
 scene.background = new THREE.Color( 'gainsboro' );
 
 var camera = new THREE.PerspectiveCamera( 30, innerWidth/innerHeight, 0.1, 5000 );
-camera.position.set( 0, 180, 350 );
+if( cameraPos )
+	camera.position.set( ...cameraPos );
+else
+	camera.position.set( 0, 180, 600 );
+
 scene.add( camera );
 
 var light = new THREE.DirectionalLight( 'white', 0 );
@@ -92,7 +114,10 @@ scene.add( cameraLight );
 var controls = new OrbitControls( camera, renderer.domElement );
 controls.zoomSpeed = 10;
 controls.enableDamping = true;
-controls.target.set( 0, 180, 50 );
+if( targetPos )
+	controls.target.set( ...targetPos );
+else
+	controls.target.set( 0, 180, 50 );
 
 // automatic reactivation of rendering
 
@@ -106,6 +131,8 @@ function reanimate( period = 500 ) {
 }
 
 controls.addEventListener( 'change', () => {
+
+	//console.log('camera',...camera.position,'\ntarget',...controls.target);
 
 	labels.update( camera.position );
 
@@ -218,12 +245,20 @@ function prepare( node ) {
 	node.level = 1;
 	node.name = node.entity?.name||node.entity;
 
-	node.color = new THREE.Color( ).set( 3*Math.random(), 3*Math.random(), 3*Math.random() );
+	if( filterName ) {
+		
+		node.color = new THREE.Color( 'white' ).multiplyScalar(3);
 
-	// node.color = new THREE.Color( 'white' ).multiplyScalar(3);
+		if( node.name.toUpperCase().indexOf((filterName+'').toUpperCase())>=0 )
+			node.color = new THREE.Color( 'crimson' ).multiplyScalar(3);
+		
+	} else {
+		
+		node.color = new THREE.Color( ).set( 3*Math.random(), 3*Math.random(), 3*Math.random() );
+		
+	}
+	
 
-	// if( node.name.toUpperCase().indexOf('node'.toUpperCase())>=0 )
-		// node.color = new THREE.Color( 'crimson' ).multiplyScalar(3);
 
 	node.position = new THREE.Vector3( 0, 0, 0 );
 	node.isEntity = Object.hasOwn( node.entity, 'type' );
