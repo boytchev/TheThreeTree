@@ -11,8 +11,10 @@
 	<script type="importmap">
 	  {
 		"imports": {
-			"three": "https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js",
-			"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.171.0/examples/jsm/"
+			"three": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.webgpu.min.js",
+			"three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.webgpu.min.js",
+			"three/tsl": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.tsl.min.js",
+			"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/"
 		}
 	  }
 	</script>
@@ -21,151 +23,65 @@
 		body {
 			overflow: hidden;
 			margin: 0;
-			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
+			font-weight: 700;
+			font-family: Arial;
+			background: gainsboro;
 		}
-
-		.holder {
-			position: absolute;
-			z-index: 1;
+		
+		#loading {
 			text-align: center;
-			margin: 0;
 			width: 100%;
-		}
-		
-		.header {
-			display: inline-block;
-			text-align: center;
-			background-color: rgb(255,250,255,75%);
-			backdrop-filter: blur(0.1em);
-			border: dotted 1px lightgray;
-			border-top: none;
-			border-radius: 0 0 2em 2em;
-			padding: 0 2em;
-		}
-		
-		.header:hover {
-			background-color: rgb(200,200,200,75%);
-		}
-		
-		a {
-			text-decoration: none; 
-		}
-		
-		h1, h2 {
-			text-transform: uppercase;
-			margin: 0.25em auto 0 auto;
-		}
-		
-		h1 {
-			font-size: 150%;
-			color: Black;
-		}
-		
-		h2 {
-			font-size: 100%;
-			color: SteelBlue;
-			margin: 0 auto 0.1em auto;
-			font-weight: normal;
-		}
-
-		.labelCore {
-			text-align: center;
-			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
-
-			width: 6em;
-			height: 6em;
-			background: white;
-			border-radius: 6em;
-			
-			display: grid;
-			align-items: center;
-		}
-		.bigLabelCore {
-			text-align: left;
-			color: black;
-			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
-			font-weight: bold;
-			font-size: 4em;
-		
-			width: 6em;
-			height: 1em;
-		}
-
-		.labelAddon {
-			text-align: center;
-			color: steelblue;
-			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
-
-			width: 6em;
-			height: 6em;
-			background: white;
-			border-radius: 6em;
-			
-			display: grid;
-			align-items: center;
-		}
-
-		.bigLabelAddon {
-			text-align: left;
-			color: steelblue;
-			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
-			font-weight: bold;
-			font-size: 4em;
-
-			width: 6em;
-			height: 1em;
-		}
-
-		.zone {
-			text-align: left;
+			top: calc(48% - 3cm);
 			color: white;
-			height: auto;
-			width: auto;
-			padding: 0em 0.5em;
-			border-radius: 2em;
-			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
-			background: none;
-		}
-
-		.labelCore.zone {
-		}
-		
-		.labelAddon.zone {
-		}
-				
-		.labelCore.noDocs {
-			background-image: radial-gradient(white 64%, crimson 65%);
-			/*border: solid 0.25em crimson;*/
-		}
-		
-		.labelAddon.noDocs {
-			background-image: radial-gradient(white 64%, deeppink 65%);
-			/*border: solid 0.25em deeppink;*/
+			position: absolute;
+			z-index: 1000;
+			text-shadow:
+				-1px -1px 0px gray,
+				1px -1px 0px gray,
+				-1px 1px 0px gray,
+				0px -1px 0px gray,
+				0px 1px 1px gray,
+				1px 2px 1px gray,
+				1px 3px 1px gray,
+				2px 4px 1px gray,
+				2px 5px 1px gray,
+				8px 18px 8px rgba(16,16,16,0.4),
+				7px 22px 16px rgba(16,16,16,0.2),
+				6px 25px 32px rgba(16,16,16,0.2),
+				5px 30px 64px rgba(16,16,16,0.4);
+			opacity: 1;
+            transition: opacity 2s ease-out; 
+			pointer-events: none;
 		}
 		
-		.selected {
-			box-shadow: 0 0 3em 2em gold;
+		big {
+			display: block;
+			font-size: 3cm;
+			font-weight: 900;
 		}
 		
-		.subline {
-			font-size: 60%;
+		small {
+			margin: auto;
+			display: inline-block;
+			width: 80%;
+			border-top: 1px dimgray solid;
+			padding: 0.5em; 1em 0 1em !important;
+			color: black;
+			text-shadow: none;
 			font-weight: 100;
-			color: gray;
+			font-size: 1em;
 		}
-		
-		
 	</style>
 
-	<script src="thethreetree.js" type="module"></script>
+	<script src="script.js" type="module"></script>
 </head>
 
 <body>
-	<div class="holder">
-	<a class="header" href="https://github.com/boytchev/TheThreeTree">
-		<h1>The Tree of Three.js</h1>	
-		<h2>and its addons</h2>	
-		<div class="subline" id="info">0.171.0</div>
-	</a>
+	<div id="loading">
+		<big>THE THREE TREE</big>
+		<small>
+		The Digital Nervous System of Three.js r184
+		</small>
 	</div>
 </body>
 </html>

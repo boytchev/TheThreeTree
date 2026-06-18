@@ -1,6 +1,6 @@
 @echo off
 
-@set threejs=171
+@set threejs=184
 
 @set srcdir=D:\Install\Three.js\three.js-master-r%threejs%\three.js-master
 @set curdir=%cd%
@@ -9,39 +9,27 @@
 
 
 
-REM echo Parse %srcdir%\build
+REM echo Parse %srcdir%\docs\api\en
 
-REM cd %srcdir%\build
-REM echo export const DATA_BUILD = ` > %dstdir%\data-build.js
-REM for /r %%x in (*.js) do (
-	REM echo   - %%x
-	REM cscript %curdir%\src\parse.vbs //NoLogo %%x >> %dstdir%\data-build.js
-REM )
-REM echo `; >> %dstdir%\data-build.js
-
-
-
-echo Parse %srcdir%\docs\api\en
-
-cd %srcdir%\docs\api\en
-echo export const DOCS_SRC = ` > %dstdir%\temp.js
-dir /b /s >> %dstdir%\temp.js
-echo `; >> %dstdir%\temp.js
-cscript %curdir%\src\parse-docs.vbs //NoLogo %dstdir%\temp.js > %dstdir%\docs-src.js
-del %dstdir%\temp.js
+REM cd %srcdir%\docs\api\en
+REM echo export const DOCS_SRC = ` > %dstdir%\temp.js
+REM dir /b /s >> %dstdir%\temp.js
+REM echo `; >> %dstdir%\temp.js
+REM cscript %curdir%\src\parse-docs.vbs //NoLogo %dstdir%\temp.js > %dstdir%\docs-src.js
+REM del %dstdir%\temp.js
 
 
 
 
 
-echo Parse %srcdir%\docs\examples\en
+REM echo Parse %srcdir%\docs\examples\en
 
-cd %srcdir%\docs\examples\en
-echo export const DOCS_ADDONS = ` > %dstdir%\temp.js
-dir /b /s >> %dstdir%\temp.js
-echo `; >> %dstdir%\temp.js
-cscript %curdir%\src\parse-docs.vbs //NoLogo %dstdir%\temp.js > %dstdir%\docs-addons.js
-del %dstdir%\temp.js
+REM cd %srcdir%\docs\examples\en
+REM echo export const DOCS_ADDONS = ` > %dstdir%\temp.js
+REM dir /b /s >> %dstdir%\temp.js
+REM echo `; >> %dstdir%\temp.js
+REM cscript %curdir%\src\parse-docs.vbs //NoLogo %dstdir%\temp.js > %dstdir%\docs-addons.js
+REM del %dstdir%\temp.js
 
 
 
@@ -49,12 +37,11 @@ del %dstdir%\temp.js
 echo Parse %srcdir%\src
 
 cd %srcdir%\src
-echo export const DATA_SRC = ` > %dstdir%\data-src.js
+echo export var data = {}; > %dstdir%\data-src.js
 for /r %%x in (*.js) do (
 	echo   - %%x
 	cscript %curdir%\src\parse.vbs //NoLogo %%x >> %dstdir%\data-src.js
 )
-echo `; >> %dstdir%\data-src.js
 
 
 
@@ -62,12 +49,11 @@ echo `; >> %dstdir%\data-src.js
 echo Parse %srcdir%\examples\jsm
 
 cd %srcdir%\examples\jsm
-echo export const DATA_ADDONS = ` > %dstdir%\data-addons.js
+echo export var data = {}; > %dstdir%\data-addons.js
 for /r %%x in (*.js) do (
 	echo   - %%x
 	cscript %curdir%\src\parse.vbs //NoLogo %%x >> %dstdir%\data-addons.js
 )
-echo `; >> %dstdir%\data-addons.js
 
 
 

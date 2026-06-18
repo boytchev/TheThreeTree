@@ -1,58 +1,41 @@
 Const ForReading = 1
-Const ForWriting = 2
 
-strFileName = Wscript.Arguments(0)
+Dim strFileName, strText, strOutputName
+Dim objFSO, objFile
 
-
-
+strFileName = WScript.Arguments(0)
 Set objFSO = CreateObject("Scripting.FileSystemObject")
-Set objFile = objFSO.OpenTextFile(strFileName, ForReading)
 
-strFileName = Mid( strFileName, InStr(1,strFileName,"three.js-master\",1)+16 )
-If InStr(strFileName,".min.js") > 0 Then
-	Wscript.Quit
+' === READ AS UTF-8 (this fixes the Ї>х garbage) ===
+strText = ReadFileUTF8(strFileName)
+
+' === Your original filename processing ===
+strOutputName = strFileName
+strOutputName = Mid(strOutputName, InStr(1, strOutputName, "three.js-master\", 1) + 16)
+
+If InStr(strOutputName, ".min.js") > 0 Then WScript.Quit
+If InStr(strOutputName, "examples\jsm\libs") = 1 Then WScript.Quit
+If InStr(strOutputName, "examples\jsm\") = 1 Then
+    strOutputName = "addons" & Mid(strOutputName, 13)
 End If
-If InStr(strFileName,"examples\jsm\libs") = 1 Then
-	Wscript.Quit
-End If
-If InStr(strFileName,"examples\jsm\") = 1 Then
-	strFileName = "addons" + Mid(strFileName,13)
-End If
-strFileName = Replace(strFileName, "\", "|")
+strOutputName = Replace(strOutputName, "\", "|")
 
-WScript.Echo "^..^ FILENAME ^..^"
-WScript.Echo strFileName
+' === Escaping ===
+strText = Replace(strText, "\", "\\")
+strText = Replace(strText, "`", "\`")
+strText = Replace(strText, "${", "\${")
 
-strText = objFile.ReadAll
-objFile.Close
+' === Output exactly like your original script ===
+WScript.Echo "data['" & strOutputName & "']=`" & strText & "`;"
 
-strText = Replace(strText, "\", "|")
-strText = Replace(strText, "`", "|")
-strText = Replace(strText, "${", "|")
-strText = Replace(strText, vbLf, " ")
-strText = Replace(strText, vbTab, " ")
-
-WScript.Echo "^..^ CONTENTS ^..^"
-WScript.Echo strText
-		
-		
-' Do Until objFile.AtEndOfStream
-	' strLine = objFile.ReadLine
-
-	' strLine = Replace(strLine, "`", "|")
-	' strLine = Replace(strLine, "${", "|")
-	' strLine = Replace(strLine, vbTab, " ")
-	' strLine = Replace(strLine, "`", "|")
-
-	' pos = InStr( 1, strLine, strSearch, 0 )
-
-	' If pos > 0  Then
-		' WScript.Echo strCommand
-		' WScript.Echo strLine
-	' End If
-	
-' Loop 
-
-objFile.Close
-
-
+' ====================== Helper Function ======================
+Function ReadFileUTF8(FilePath)
+    Dim stream
+    Set stream = CreateObject("ADODB.Stream")
+    stream.Type = 2
+    stream.Charset = "UTF-8"
+    stream.Open
+    stream.LoadFromFile FilePath
+    ReadFileUTF8 = stream.ReadText
+    stream.Close
+End Function

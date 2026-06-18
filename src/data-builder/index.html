@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>The Three Tree Builder</title>
+
+	<style>
+		body {
+			font-family: Bahnschrift, Cordana, Calibri, sans-serif;
+			max-width: 40em;
+			margin: auto;
+			text-align: center;
+		}
+
+		a {
+			text-decoration: none; 
+		}
+		
+		h1, h2, h3 {
+			text-align: center;
+		}
+		
+		h1 {
+			margin: 1em 0 0.5em 0;
+			font-size: 200%;
+			color: Black;
+		}
+		
+		h2 {
+			font-size: 125%;
+			margin-bottom: 2em;
+			font-weight: 300;
+		}
+		
+		code {
+			font-size: 125%;
+			font-weight: bold;
+			color: black;
+		}
+		
+		code.thin {
+			font-size: 125%;
+			font-weight: 100;
+			color: gray;
+		}
+		
+		p {
+			font-weight: 300;
+			text-align: justify;
+		}
+		
+		textarea {
+			width: 100%;
+			height: 20em;
+		}
+		
+		button {
+			margin-top: 1em;
+			padding: 0.5em 3em;
+		}
+	</style>
+
+	<script src="script.js" type="module"></script>
+</head>
+
+<body>
+	<h1>The Tree of Three.js</h1>	
+	<h2>Data Builder</h2>	
+
+	<p>
+		Data Builder is half-automatic tool that prepares data for the Three of Three.js.
+		It uses data from files <code>data-src.js</code> and
+		<code>data-addons.js</code> found in folder <code>\src\data\</code>.
+		If these files do not exist or are outdated, call <code>REBUILD.BAT</code>
+		from the project root to recreate them.
+	</p>
+	<p>
+		Data Builder creates JSON file representing a tree of Three.js public classes,
+		functions and variables. This file must be saved as <code>data.js</code>
+		back in the same folder <code>\src\data\</code>. If the box below does not
+		show any text, check the developer's console.
+	</p>
+
+	<textarea id="result">Result will show here</textarea>
+	
+	<button id="save">Save</button>
+	
+	<a href="https://github.com/boytchev/TheThreeTree"></a>
+
+</body>
+</html>

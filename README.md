@@ -1,13 +1,18 @@
-# The Tree of Three.js classes
+# The Three Tree
 
-A tree-like visualization of Three.js classes and its addons. Click on the tree to view it live:
+A tree-like visualization of the digital nervous system of Three.js.
 
-[<img src="https://boytchev.github.io/TheThreeTree/images/all.png">](https://boytchev.github.io/TheThreeTree/src)
+Live: [https://boytchev.github.io/TheThreeTree/src](https://boytchev.github.io/TheThreeTree/src)
+
+[<img src="https://boytchev.github.io/TheThreeTree/images/all.jpg">](https://boytchev.github.io/TheThreeTree/src)
+
+[<img src="https://boytchev.github.io/TheThreeTree/images/closeup-1.jpg" width="30%>](https://boytchev.github.io/TheThreeTree/src)
+[<img src="https://boytchev.github.io/TheThreeTree/images/closeup-2.jpg" width="30%>](https://boytchev.github.io/TheThreeTree/src)
+[<img src="https://boytchev.github.io/TheThreeTree/images/closeup-3.jpg" width="30%>](https://boytchev.github.io/TheThreeTree/src)
 
 
 
-
-
+<!--
 ### How to use
 
 Use mouse or touch to pan the tree or zoom it in/out.
@@ -31,24 +36,12 @@ Show a close-up of the `Material` class and mark all other classes that has `mat
 Mark all `addons` branches and show a close-up of the root of the largest one:
 
 [https://boytchev.github.io/TheThreeTree/src?name=addons*](https://boytchev.github.io/TheThreeTree/src?name=addons*)
-
-
-
-### Legend
-
-
-| Image | Description |
-| --- | --- |
-| <img src="https://boytchev.github.io/TheThreeTree/images/node-core.png" height="80" style="border: solid 1px gray"> &nbsp; <img src="https://boytchev.github.io/TheThreeTree/images/node-addon.png" height="80" style="border: solid 1px gray"> | A class from Three.js (black) or its addons (blue) |
-| <img src="https://boytchev.github.io/TheThreeTree/images/node-core-undocumented.png" height="80" style="border: solid 1px gray"> &nbsp; <img src="https://boytchev.github.io/TheThreeTree/images/node-addon-undocumented.png" height="80" style="border: solid 1px gray"> | A class without documentation in a dedicated webpage |
-| <img src="https://boytchev.github.io/TheThreeTree/images/node-important.png" height="80" style="border: solid 1px gray"> | An important or highly used class |
-| <img src="https://boytchev.github.io/TheThreeTree/images/node-folder-file.png" height="80" style="border: solid 1px gray"> | A folder or a Javascript file containing classes |
+-->
 
 
 ### Disclamers
 
-* This is a work in progress
-* No guarantee that all classes are corectly extracted
-* Performance issues when viewing from a mobile device
+* This is a work in progress (my favourite disclaimer)
+* No guarantee that all entities are corectly extracted
 * The tree alignment is neither the best, nor the cutest
 
