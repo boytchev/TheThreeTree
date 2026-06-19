@@ -41,6 +41,10 @@ https://boytchev.github.io/TheThreeTree/src?show=node&camera=-322,317,141&target
 
 [https://x.com/PavelBoytchev/status/2064769599053135925](https://x.com/PavelBoytchev/status/2064769599053135925)
 
+[https://x.com/PavelBoytchev/status/1868379944239431909](https://x.com/PavelBoytchev/status/1868379944239431909)
+
+[https://x.com/PavelBoytchev/status/1845539634400338182](https://x.com/PavelBoytchev/status/1845539634400338182)
+
 
 
 ### AI disclosure
