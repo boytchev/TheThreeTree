@@ -182,9 +182,9 @@ function defineMaterial( colorName ) {
 
 }
 
-var materialNormal = defineMaterial( 'black' ),
-	materialSelected = defineMaterial( 'crimson' ),
-	materialDimmed = defineMaterial( 'lightgray' );
+var labelMaterialNormal = defineMaterial( 'black' ),
+	labelMaterialSelected = defineMaterial( 'black' ),
+	labelMaterialDimmed = defineMaterial( 'gray' );
 
 
 
@@ -196,7 +196,7 @@ var materialNormal = defineMaterial( 'black' ),
 
 class Label extends Group {
 
-	constructor( text, scale ) {
+	constructor( text, scale, material ) {
 
 		super();
 
@@ -214,7 +214,7 @@ class Label extends Group {
 
 		// create the text mesh
 
-		var textMesh = new Mesh( geometry, materialNormal );
+		var textMesh = new Mesh( geometry, material );
 
 		this.textScale = scale;
 		this.add( textMesh );
@@ -254,4 +254,4 @@ labels.update = function ( target ) {
 
 
 
-export { Label, labels };
+export { Label, labels, labelMaterialNormal, labelMaterialSelected, labelMaterialDimmed };

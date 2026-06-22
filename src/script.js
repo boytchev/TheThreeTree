@@ -8,7 +8,7 @@
 // imports from Three.js
 
 import * as THREE from 'three';
-import { buffer, Fn, instancedBufferAttribute, instanceIndex, positionGeometry, positionWorld } from 'three/tsl';
+import { positionGeometry, positionWorld } from 'three/tsl';
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Stats from 'three/addons/libs/stats.module.js';
 
@@ -20,12 +20,10 @@ import { tree as d3tree, hierarchy, packEnclose, packSiblings } from './vendor/d
 
 import { tree } from "./data/data.js";
 import { createBulbInstances } from "./bulbs.js";
-import { Label, labels } from "./labels.js";
-import { stripes, sway, SWAY_ENABLED } from "./tsl.js";
+import { Label, labelMaterialDimmed, labelMaterialNormal, labelMaterialSelected, labels } from "./labels.js";
+import { instanceWorldPositionNode, stripes, sway, SWAY_ENABLED } from "./tsl.js";
 
 
-
-const USE_SHADOW = false;
 
 const SHOW_STATS = false;
 
@@ -39,18 +37,21 @@ var cameraPos = urlParams.get( 'camera' );
 var targetPos = urlParams.get( 'target' );
 
 try {
-	if( cameraPos ) cameraPos = cameraPos.split(',').map( e => Number(e) );
-	if( targetPos ) targetPos = targetPos.split(',').map( e => Number(e) );
-	
-	if( cameraPos.length != 3 || isNaN(Math.max(...cameraPos)) ) cameraPos = null;
-	if( targetPos.length != 3 || isNaN(Math.max(...targetPos))  ) targetPos = null;
-	
+
+	if ( cameraPos ) cameraPos = cameraPos.split( ',' ).map( e => Number( e ) );
+	if ( targetPos ) targetPos = targetPos.split( ',' ).map( e => Number( e ) );
+
+	if ( cameraPos.length != 3 || isNaN( Math.max( ...cameraPos ) ) ) cameraPos = null;
+	if ( targetPos.length != 3 || isNaN( Math.max( ...targetPos ) ) ) targetPos = null;
+
 } catch {
+
 	cameraPos = null;
 	targetPos = null;
+
 }
 
-console.log(cameraPos,targetPos)
+console.log( cameraPos, targetPos );
 
 /*
  * Scene setup
@@ -61,13 +62,6 @@ var loadingElem = document.getElementById( 'loading' );
 var renderer = new THREE.WebGPURenderer( { antialias: true } );
 renderer.setSize( innerWidth, innerHeight );
 
-if ( USE_SHADOW ) {
-
-	renderer.shadowMap.enabled = true;
-	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-}
-
 document.body.appendChild( renderer.domElement );
 document.body.style.overflow = 'hidden';
 document.body.style.margin = '0';
@@ -76,7 +70,7 @@ var scene = new THREE.Scene();
 scene.background = new THREE.Color( 'gainsboro' );
 
 var camera = new THREE.PerspectiveCamera( 30, innerWidth/innerHeight, 0.1, 5000 );
-if( cameraPos )
+if ( cameraPos )
 	camera.position.set( ...cameraPos );
 else
 	camera.position.set( 0, 180, 600 );
@@ -85,23 +79,6 @@ scene.add( camera );
 
 var light = new THREE.DirectionalLight( 'white', 0 );
 light.position.set( 0, 140, 0 );
-
-if ( USE_SHADOW ) {
-
-	light.shadow.mapSize.width = 2048;
-	light.shadow.mapSize.height = light.shadow.mapSize.width;
-	light.shadow.camera.near = 1;
-	light.shadow.camera.far = 250;
-	light.shadow.camera.left = -400;
-	light.shadow.camera.right = 400;
-	light.shadow.camera.top = 400;
-	light.shadow.camera.bottom = -400;
-
-	light.autoUpdate = false;
-	light.castShadow = true;
-
-}
-
 scene.add( light );
 
 var cameraLightTarget = new THREE.Object3D();
@@ -114,7 +91,7 @@ scene.add( cameraLight );
 var controls = new OrbitControls( camera, renderer.domElement );
 controls.zoomSpeed = 10;
 controls.enableDamping = true;
-if( targetPos )
+if ( targetPos )
 	controls.target.set( ...targetPos );
 else
 	controls.target.set( 0, 180, 50 );
@@ -170,35 +147,6 @@ function showTimer( msg ) {
 }
 
 
-const createInstanceWorldPositionNode = Fn( ( { object: mesh } ) => {
-
-	const attribute = mesh.instanceMatrix;
-	const matrices = attribute.array;
-
-	if ( mesh.count <= 1000 ) {
-
-		const bufferNode = buffer( matrices, 'mat4', Math.max( mesh.count, 1 ) );
-		return bufferNode.element( instanceIndex ).toMat4().element( 3 ).xyz;
-
-	} else {
-
-		const buffer = new THREE.InstancedInterleavedBuffer( matrices, 16, 1 );
-		let bufferFn = instancedBufferAttribute;
-		if ( attribute.usage === THREE.DynamicDrawUsage ) {
-
-			bufferFn = THREE.instancedDynamicBufferAttribute;
-
-		}
-
-		// F.Signature -> bufferAttribute( array, type, stride, offset )
-		const b3 = bufferFn( buffer, 'vec4', 16, 12 );
-		return b3.xyz;
-
-	}
-
-} )();
-
-
 
 /*
  * Materials of bulbs and links
@@ -222,7 +170,7 @@ var linkMaterial = new THREE.MeshPhysicalNodeMaterial( {
 
 if ( SWAY_ENABLED ) {
 
-	nodeMaterial.positionNode = sway( positionWorld, createInstanceWorldPositionNode.add( positionGeometry ) );
+	nodeMaterial.positionNode = sway( positionWorld, instanceWorldPositionNode.add( positionGeometry ) );
 	linkMaterial.positionNode = sway( positionWorld, positionWorld );
 
 }
@@ -245,19 +193,25 @@ function prepare( node ) {
 	node.level = 1;
 	node.name = node.entity?.name||node.entity;
 
-	if( filterName ) {
-		
-		node.color = new THREE.Color( 'white' ).multiplyScalar(3);
+	if ( filterName ) {
 
-		if( node.name.toUpperCase().indexOf((filterName+'').toUpperCase())>=0 )
-			node.color = new THREE.Color( 'crimson' ).multiplyScalar(3);
-		
+		node.color = new THREE.Color( 'white' ).multiplyScalar( 3 );
+		node.labelColor = labelMaterialDimmed;
+
+		if ( node.name.toUpperCase().indexOf( ( filterName+'' ).toUpperCase() )>=0 ) {
+
+			node.color = new THREE.Color( 'crimson' ).multiplyScalar( 3 );
+			node.labelColor = labelMaterialSelected;
+
+		}
+
 	} else {
-		
+
 		node.color = new THREE.Color( ).set( 3*Math.random(), 3*Math.random(), 3*Math.random() );
-		
+		node.labelColor = labelMaterialNormal;
+
 	}
-	
+
 
 
 	node.position = new THREE.Vector3( 0, 0, 0 );
@@ -606,7 +560,7 @@ function* labeling() {
 
 		var node = flatTree[ i ];
 
-		node.label = new Label( node.name, node.isEntity?4+3.5*node.level:3 );
+		node.label = new Label( node.name, node.isEntity?4+3.5*node.level:3, node.labelColor );
 
 		node.label.position.copy( node.position );
 		scene.add( node.label );

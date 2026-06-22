@@ -5,11 +5,12 @@
 
 
 
-import { Fn, mx_noise_vec3 as noise3d, time, uniform, uv, vec3, } from 'three/tsl';
+import { InstancedInterleavedBuffer } from 'three';
+import { buffer, Fn, instancedBufferAttribute, instanceIndex, mx_noise_vec3 as noise3d, time, uniform, uv, vec3, } from 'three/tsl';
 
 
 
-const SWAY_ENABLED = !true;
+const SWAY_ENABLED = true;
 const FADE_DISTANCE = 35;
 
 
@@ -62,4 +63,29 @@ var stripes = Fn( ( ) => {
 } );
 
 
-export { sway, SWAY_ENABLED, fade, FADE_DISTANCE, stripes };
+
+/*
+ * Calculate world position of a vertex of instance in instanced mesh
+ */
+
+var instanceWorldPositionNode = Fn( ( { object: mesh } ) => {
+
+	var matrices = mesh.instanceMatrix.array;
+
+	if ( mesh.count <= 1000 ) {
+
+		var bufferNode = buffer( matrices, 'mat4', Math.max( mesh.count, 1 ) );
+		return bufferNode.element( instanceIndex ).toMat4().element( 3 ).xyz;
+
+	} else {
+
+		var bufferNode = new InstancedInterleavedBuffer( matrices, 16, 1 );
+		return instancedBufferAttribute( bufferNode, 'vec4', 16, 12 ).xyz;
+
+	}
+
+} )();
+
+
+
+export { sway, SWAY_ENABLED, fade, FADE_DISTANCE, stripes, instanceWorldPositionNode };
